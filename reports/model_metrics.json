@@ -1,0 +1,1023 @@
+{
+  "dataset": {
+    "path": "C:\\Users\\Twinkle\\OneDrive\\Documents\\TE\\MLmini\\data\\file_dataset.csv",
+    "rows": 1200,
+    "class_counts": {
+      "academic": 200,
+      "resume": 200,
+      "receipt": 200,
+      "presentation": 200,
+      "image": 200,
+      "other": 200
+    },
+    "provenance": "Synthetic generated filenames; not real-world observations."
+  },
+  "evaluation": {
+    "random_state": 42,
+    "test_size": 0.2,
+    "split_method": "Stratified split of filename families; all suffix variants of a filename stem stay in one split.",
+    "labels": [
+      "academic",
+      "image",
+      "other",
+      "presentation",
+      "receipt",
+      "resume"
+    ]
+  },
+  "models": {
+    "tfidf_multinomial_nb": {
+      "accuracy": 0.7416666666666667,
+      "per_class": {
+        "academic": {
+          "precision": 0.38461538461538464,
+          "recall": 0.25,
+          "f1": 0.30303030303030304,
+          "support": 40
+        },
+        "image": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 40
+        },
+        "other": {
+          "precision": 1.0,
+          "recall": 0.4,
+          "f1": 0.5714285714285714,
+          "support": 40
+        },
+        "presentation": {
+          "precision": 0.625,
+          "recall": 1.0,
+          "f1": 0.7692307692307693,
+          "support": 40
+        },
+        "receipt": {
+          "precision": 0.8,
+          "recall": 0.8,
+          "f1": 0.8,
+          "support": 40
+        },
+        "resume": {
+          "precision": 0.7407407407407407,
+          "recall": 1.0,
+          "f1": 0.851063829787234,
+          "support": 40
+        }
+      },
+      "macro_f1": 0.7157922455794797,
+      "weighted_f1": 0.7157922455794796,
+      "confusion_matrix": [
+        [
+          10,
+          0,
+          0,
+          23,
+          0,
+          7
+        ],
+        [
+          0,
+          40,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          0,
+          16,
+          0,
+          8,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          40,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          32,
+          7
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          40
+        ]
+      ],
+      "misclassifications": [
+        {
+          "file_name": "computer_networks_exam_review_draft.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "computer_networks_exam_review_final.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "computer_networks_exam_review_revised.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "computer_networks_exam_review_v2.pptx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "computer_networks_exam_review_signed.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "computer_networks_exam_review_copy_02.pptx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "operating_systems_process_scheduling_draft.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "operating_systems_process_scheduling_final.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "operating_systems_process_scheduling_revised.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "operating_systems_process_scheduling_v2.pptx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "operating_systems_process_scheduling_signed.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "operating_systems_process_scheduling_2025_01.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "operating_systems_process_scheduling_2025_06.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "operating_systems_process_scheduling_copy_02.pptx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "microeconomics_market_analysis_draft.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "microeconomics_market_analysis_final.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "microeconomics_market_analysis_revised.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "microeconomics_market_analysis_v2.pptx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "microeconomics_market_analysis_signed.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "microeconomics_market_analysis_2025_01.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "microeconomics_market_analysis_2025_06.pdf",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "microeconomics_market_analysis_copy_02.pptx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_draft.pdf",
+          "true_category": "academic",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_final.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_revised.pdf",
+          "true_category": "academic",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_v2.pptx",
+          "true_category": "academic",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_signed.pdf",
+          "true_category": "academic",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_2025_01.docx",
+          "true_category": "academic",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_2025_06.pdf",
+          "true_category": "academic",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_copy_02.pptx",
+          "true_category": "academic",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "restaurant_dining_bill_draft.pdf",
+          "true_category": "receipt",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "restaurant_dining_bill_final.jpg",
+          "true_category": "receipt",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "restaurant_dining_bill_revised.pdf",
+          "true_category": "receipt",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "restaurant_dining_bill_v2.png",
+          "true_category": "receipt",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "restaurant_dining_bill_signed.pdf",
+          "true_category": "receipt",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "restaurant_dining_bill_2025_01.jpg",
+          "true_category": "receipt",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "restaurant_dining_bill_2025_06.pdf",
+          "true_category": "receipt",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "restaurant_dining_bill_copy_02.png",
+          "true_category": "receipt",
+          "predicted_category": "resume"
+        },
+        {
+          "file_name": "home_internet_router_manual_draft.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_final.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_revised.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_v2.docx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_signed.zip",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_copy_02.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_draft.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_final.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_revised.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_v2.docx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_signed.zip",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_copy_02.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_draft.pdf",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_final.txt",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_revised.xlsx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_v2.docx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_signed.zip",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_copy_02.xlsx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        }
+      ],
+      "runtime_seconds": 0.033322,
+      "train_rows": 960,
+      "test_rows": 240,
+      "svd_components": null
+    },
+    "tfidf_logistic_regression": {
+      "accuracy": 0.8333333333333334,
+      "per_class": {
+        "academic": {
+          "precision": 0.6739130434782609,
+          "recall": 0.775,
+          "f1": 0.7209302325581395,
+          "support": 40
+        },
+        "image": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 40
+        },
+        "other": {
+          "precision": 0.5151515151515151,
+          "recall": 0.425,
+          "f1": 0.4657534246575342,
+          "support": 40
+        },
+        "presentation": {
+          "precision": 0.975609756097561,
+          "recall": 1.0,
+          "f1": 0.9876543209876543,
+          "support": 40
+        },
+        "receipt": {
+          "precision": 0.8,
+          "recall": 0.8,
+          "f1": 0.8,
+          "support": 40
+        },
+        "resume": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 40
+        }
+      },
+      "macro_f1": 0.8290563297005548,
+      "weighted_f1": 0.8290563297005547,
+      "confusion_matrix": [
+        [
+          31,
+          0,
+          8,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          40,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          15,
+          0,
+          17,
+          0,
+          8,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          40,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          32,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          40
+        ]
+      ],
+      "misclassifications": [
+        {
+          "file_name": "microeconomics_market_analysis_final.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_draft.pdf",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_final.docx",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_revised.pdf",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_v2.pptx",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_signed.pdf",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_2025_01.docx",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_2025_06.pdf",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_copy_02.pptx",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_draft.pdf",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_final.jpg",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_revised.pdf",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_v2.png",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_signed.pdf",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_2025_01.jpg",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_2025_06.pdf",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_copy_02.png",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "home_internet_router_manual_draft.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_final.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_revised.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_v2.docx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_signed.zip",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_draft.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_final.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_revised.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_v2.docx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_signed.zip",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_copy_02.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_draft.pdf",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_final.txt",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_revised.xlsx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_v2.docx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_signed.zip",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_copy_02.xlsx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        }
+      ],
+      "runtime_seconds": 0.04695,
+      "train_rows": 960,
+      "test_rows": 240,
+      "svd_components": null
+    },
+    "tfidf_svd_logistic_regression": {
+      "accuracy": 0.8458333333333333,
+      "per_class": {
+        "academic": {
+          "precision": 0.6956521739130435,
+          "recall": 0.8,
+          "f1": 0.7441860465116279,
+          "support": 40
+        },
+        "image": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 40
+        },
+        "other": {
+          "precision": 0.6129032258064516,
+          "recall": 0.475,
+          "f1": 0.5352112676056338,
+          "support": 40
+        },
+        "presentation": {
+          "precision": 0.9302325581395349,
+          "recall": 1.0,
+          "f1": 0.963855421686747,
+          "support": 40
+        },
+        "receipt": {
+          "precision": 0.8,
+          "recall": 0.8,
+          "f1": 0.8,
+          "support": 40
+        },
+        "resume": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 40
+        }
+      },
+      "macro_f1": 0.8405421226340014,
+      "weighted_f1": 0.8405421226340014,
+      "confusion_matrix": [
+        [
+          32,
+          0,
+          6,
+          2,
+          0,
+          0
+        ],
+        [
+          0,
+          40,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          13,
+          0,
+          19,
+          0,
+          8,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          40,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          6,
+          1,
+          32,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          40
+        ]
+      ],
+      "misclassifications": [
+        {
+          "file_name": "operating_systems_process_scheduling_final.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_draft.pdf",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_final.docx",
+          "true_category": "academic",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_revised.pdf",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_signed.pdf",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_2025_01.docx",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_2025_06.pdf",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "linear_algebra_matrix_exercises_copy_02.pptx",
+          "true_category": "academic",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_draft.pdf",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_final.jpg",
+          "true_category": "receipt",
+          "predicted_category": "presentation"
+        },
+        {
+          "file_name": "restaurant_dining_bill_revised.pdf",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_v2.png",
+          "true_category": "receipt",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "restaurant_dining_bill_signed.pdf",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_2025_01.jpg",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_2025_06.pdf",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "restaurant_dining_bill_copy_02.png",
+          "true_category": "receipt",
+          "predicted_category": "other"
+        },
+        {
+          "file_name": "home_internet_router_manual_final.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_v2.docx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_signed.zip",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "home_internet_router_manual_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_draft.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_final.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_revised.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_v2.docx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_signed.zip",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "printer_driver_installation_guide_copy_02.xlsx",
+          "true_category": "other",
+          "predicted_category": "academic"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_draft.pdf",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_final.txt",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_revised.xlsx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_v2.docx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_signed.zip",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_2025_01.pdf",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_2025_06.txt",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        },
+        {
+          "file_name": "subscription_cancellation_letter_copy_02.xlsx",
+          "true_category": "other",
+          "predicted_category": "receipt"
+        }
+      ],
+      "runtime_seconds": 0.48108,
+      "train_rows": 960,
+      "test_rows": 240,
+      "svd_components": 100
+    }
+  },
+  "selected_model": "tfidf_svd_logistic_regression"
+}

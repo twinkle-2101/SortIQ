@@ -10,6 +10,7 @@ venv/
 # Generated ML artifacts
 models/*.joblib
 models/*.pkl
+!models/best_model.joblib
 
 # Local test files
 test_downloads/

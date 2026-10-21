@@ -5,7 +5,7 @@ Build a Python ML app that predicts a file category from its filename and extens
 
 **Core categories:** `academic`, `resume`, `receipt`, `presentation`, `image`, `other`.
 
-**Recommended stack:** Python, Pandas, NumPy, scikit-learn, TF-IDF, Naive Bayes, Logistic Regression, Matplotlib, Streamlit, joblib, pytest. Use Google Colab for experiments and run the Streamlit file-organizing app locally. SVD is optional until faculty approval.
+**Recommended stack:** Python, Pandas, NumPy, scikit-learn, TF-IDF, Naive Bayes, Logistic Regression, TruncatedSVD, Matplotlib, Streamlit, joblib, pytest. Use Google Colab for experiments and run the Streamlit file-organizing app locally. This project requires an SVD comparison.
 
 ## 1. Two-member split
 
@@ -15,7 +15,7 @@ Owns:
 - Data cleaning, class counts, TF-IDF.
 - Naive Bayes and Logistic Regression training.
 - Fair train/test evaluation: accuracy, per-class precision/recall/F1, macro-F1, weighted-F1, confusion matrix.
-- Optional SVD comparison.
+- TruncatedSVD comparison using the same evaluation split as the baseline models.
 - Save best complete pipeline and metrics.
 - Write ML methodology/results for the report.
 
@@ -83,7 +83,7 @@ The app recommends these folders; users can review or override them.
 ### Stage 0 — Agree on requirements
 **Member A:** Define category meanings and provide 5–10 example filenames per class. Decide dataset sourcing/labeling.
 **Member B:** Sketch the UI workflow and list file-operation risks.
-**Together:** Read the faculty rubric; confirm whether SVD and a particular UI are required; agree on categories, CSV schema, and model API.
+**Together:** Read the faculty rubric; confirm any additional requirements and the UI; agree on categories, CSV schema, and model API. The SVD comparison is required for this project.
 
 **Done when:** categories and interfaces are agreed; no real files are moved.
 
@@ -113,11 +113,11 @@ The app recommends these folders; users can review or override them.
 
 **Done when:** app displays real model predictions and still requires confirmation to move files.
 
-### Stage 5 — Optional SVD and polish
-**Member A:** Only if faculty approves and time permits, compare `TruncatedSVD` after TF-IDF against the baseline using the same split; record component count, runtime, and metrics.
+### Stage 5 — SVD comparison and polish
+**Member A:** Compare `TruncatedSVD` after TF-IDF against the baseline using the same split; record component count, runtime, and metrics.
 **Member B:** Improve messages/loading states, add low-confidence review if supported, prepare a safe demo folder.
 
-**Done when:** optional work does not break the baseline. If not approved, note SVD as future scope.
+**Done when:** the required SVD comparison is reported and does not break the baseline.
 
 ### Stage 6 — End-to-end testing
 **Member A:** Check saved model, inference consistency, metrics, and limitations.
@@ -196,7 +196,7 @@ Record real test outcomes; do not claim tests passed unless run.
 - [ ] Naive Bayes and Logistic Regression compared fairly.
 - [ ] Required metrics and confusion matrix reported.
 - [ ] Full model pipeline saved and reload tested.
-- [ ] Optional SVD included only if approved.
+- [ ] SVD comparison included using the same evaluation split as the baseline models.
 - [ ] Streamlit app scans, predicts, previews, and allows overrides.
 - [ ] Moves require explicit confirmation.
 - [ ] Collisions and errors handled safely.
