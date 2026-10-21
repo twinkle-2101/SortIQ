@@ -1,7 +1,9 @@
 """Model training, evaluation, persistence, and filename inference."""
 
 import json
+import os
 import re
+import tempfile
 import time
 from collections import Counter
 from pathlib import Path
@@ -192,6 +194,7 @@ def train_and_evaluate(
     confusion_matrix_path: str | Path = DEFAULT_CONFUSION_MATRIX_PATH,
     svd_components: int = 100,
     feedback_path: str | Path | None = None,
+    feedback_event_count: int = 0,
 ) -> dict:
     """Compare candidates, then refit the selected model with optional corrections."""
     data = load_dataset(dataset_path)
@@ -264,6 +267,7 @@ def train_and_evaluate(
         final_training_data["file_name"].tolist(),
         final_training_data["category"].to_numpy(),
     )
+    final_model.sortiq_feedback_event_count = feedback_event_count
 
     metrics = {
         "dataset": {
@@ -289,8 +293,12 @@ def train_and_evaluate(
         "feedback": {
             "used": feedback is not None,
             "correction_count": len(feedback) if feedback is not None else 0,
+            "event_count": feedback_event_count,
             "final_training_rows": len(final_training_data),
-            "retraining": "Manual; corrections are used only when a feedback file is supplied.",
+            "retraining": (
+                "Automatic after the configured correction threshold when a "
+                "feedback file is supplied."
+            ),
         },
     }
 
@@ -300,11 +308,31 @@ def train_and_evaluate(
     model_path.parent.mkdir(parents=True, exist_ok=True)
     metrics_path.parent.mkdir(parents=True, exist_ok=True)
     confusion_matrix_path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(final_model, model_path)
-    metrics_path.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    _save_confusion_matrix(
-        evaluations[best_name]["confusion_matrix"], labels, confusion_matrix_path
-    )
+    temporary_paths = []
+    for path in (model_path, metrics_path, confusion_matrix_path):
+        with tempfile.NamedTemporaryFile(
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=path.suffix,
+            delete=False,
+        ) as temporary_file:
+            temporary_paths.append(Path(temporary_file.name))
+    model_temp, metrics_temp, confusion_matrix_temp = temporary_paths
+    try:
+        joblib.dump(final_model, model_temp)
+        metrics_temp.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+        _save_confusion_matrix(
+            evaluations[best_name]["confusion_matrix"],
+            labels,
+            confusion_matrix_temp,
+        )
+        os.replace(metrics_temp, metrics_path)
+        os.replace(confusion_matrix_temp, confusion_matrix_path)
+        os.replace(model_temp, model_path)
+    finally:
+        for temporary_path in temporary_paths:
+            if temporary_path.exists():
+                temporary_path.unlink()
     return metrics
 
 

@@ -48,28 +48,33 @@ not yet produced the model file.
 
 ## Learning from reviewed ambiguous files
 
-Predictions do not update the model automatically. After a person reviews a
-prediction, save the corrected filename and one approved category locally:
+The model does not ask users to label every file. After a person confirms a
+category correction for an ambiguous prediction, the app should call
+`record_correction`:
 
-```powershell
-python -c "from src.feedback import save_correction; save_correction('quarterly_store_invoice.pdf', 'receipt')"
+```python
+from src.feedback import record_correction
+
+result = record_correction("quarterly_store_invoice.pdf", "receipt")
+if result["retrained"]:
+    model = load_model()  # Reload the replaced model in the app.
 ```
 
-By default this writes to `data/user_feedback.csv`, which is git-ignored
-because real filenames may be private. The feedback file uses the same
-`file_name`, `extension`, and `category` columns as the starter dataset. A new
-correction for the same filename replaces the earlier correction.
+Corrections are stored locally in `data/user_feedback.csv`; a git-ignored
+`data/user_feedback_events.jsonl` records each confirmed correction so repeated
+corrections to the same filename count as separate review actions. Both files
+may contain private filenames and should remain local.
 
-Retraining is a separate, explicit action:
+After every five confirmed corrections since the previous successful training,
+the pipeline reruns the fixed baseline comparison and fits the selected model
+on the starter data plus the latest reviewed labels. Matching starter rows are
+replaced by their reviewed labels. Before the threshold is reached,
+`record_correction` returns `retrained=False` and the app can continue using the
+current model.
 
-```powershell
-python -m src.run_experiments --feedback data\user_feedback.csv
-```
-
-This reruns the fixed evaluation using only the original starter dataset, then
-fits the selected model on the starter data plus the reviewed corrections.
-Corrections replace matching starter rows in the final training data. The
-metrics record the feedback count and final training size. Without `--feedback`,
-the feedback file is not read or used. Keep feedback local and review labels
-before retraining; feedback does not alter a running model until the saved
-pipeline is reloaded.
+If training fails, the exception should be shown to the user. The previous
+model file is preserved; corrections remain recorded and will be retried after
+the next correction. When `retrained=True`, reload the saved model (and clear
+any application cache) to use the updated pipeline. The evaluation scores still
+describe the fixed synthetic dataset, not the feedback-trained model's
+real-world performance.

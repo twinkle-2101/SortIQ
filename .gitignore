@@ -12,6 +12,7 @@ models/*.joblib
 models/*.pkl
 !models/best_model.joblib
 data/user_feedback.csv
+data/user_feedback_events.jsonl
 
 # Local test files
 test_downloads/

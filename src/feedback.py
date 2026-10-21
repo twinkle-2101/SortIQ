@@ -1,16 +1,24 @@
-"""Local, user-reviewed category corrections for explicit model retraining."""
+"""Local, user-reviewed corrections with batched automatic model retraining."""
 
+import json
 from pathlib import Path
 
 import pandas as pd
 
-from src.ml_pipeline import APPROVED_CATEGORIES
+from src.ml_pipeline import (
+    APPROVED_CATEGORIES,
+    DEFAULT_CONFUSION_MATRIX_PATH,
+    DEFAULT_METRICS_PATH,
+    DEFAULT_MODEL_PATH,
+    train_and_evaluate,
+)
 
 
 FEEDBACK_COLUMNS = ["file_name", "extension", "category"]
-DEFAULT_FEEDBACK_PATH = (
-    Path(__file__).resolve().parents[1] / "data" / "user_feedback.csv"
-)
+DATA_DIRECTORY = Path(__file__).resolve().parents[1] / "data"
+DEFAULT_FEEDBACK_PATH = DATA_DIRECTORY / "user_feedback.csv"
+DEFAULT_FEEDBACK_EVENTS_PATH = DATA_DIRECTORY / "user_feedback_events.jsonl"
+RETRAIN_AFTER_CORRECTIONS = 5
 
 
 def load_feedback(feedback_path: str | Path) -> pd.DataFrame:
@@ -80,6 +88,77 @@ def save_correction(
     feedback_path.parent.mkdir(parents=True, exist_ok=True)
     updated.to_csv(feedback_path, index=False)
     return len(updated)
+
+
+def record_correction(
+    file_name: str,
+    category: str,
+    feedback_path: str | Path = DEFAULT_FEEDBACK_PATH,
+    events_path: str | Path = DEFAULT_FEEDBACK_EVENTS_PATH,
+    model_path: str | Path = DEFAULT_MODEL_PATH,
+    metrics_path: str | Path = DEFAULT_METRICS_PATH,
+    confusion_matrix_path: str | Path = DEFAULT_CONFUSION_MATRIX_PATH,
+    retrain_after: int = RETRAIN_AFTER_CORRECTIONS,
+) -> dict[str, object]:
+    """Record a confirmed correction and retrain after enough new corrections."""
+    if retrain_after < 1:
+        raise ValueError("retrain_after must be at least 1")
+
+    feedback_path = Path(feedback_path)
+    events_path = Path(events_path)
+    model_path = Path(model_path)
+    metrics_path = Path(metrics_path)
+    confusion_matrix_path = Path(confusion_matrix_path)
+    save_correction(file_name, category, feedback_path)
+
+    event = {
+        "file_name": file_name,
+        "extension": Path(file_name).suffix.lower(),
+        "category": category,
+    }
+    events_path.parent.mkdir(parents=True, exist_ok=True)
+    with events_path.open("a", encoding="utf-8", newline="\n") as event_file:
+        event_file.write(json.dumps(event) + "\n")
+        event_file.flush()
+
+    with events_path.open(encoding="utf-8") as event_file:
+        correction_count = sum(1 for line in event_file if line.strip())
+
+    trained_count = 0
+    if model_path.is_file():
+        import joblib
+
+        previous_model = joblib.load(model_path)
+        trained_count = int(
+            getattr(previous_model, "sortiq_feedback_event_count", 0)
+        )
+        if trained_count > correction_count:
+            raise ValueError(
+                "The feedback event log has fewer corrections than the saved model "
+                "records as trained. Restore the local event log before recording "
+                "more feedback."
+            )
+
+    pending_corrections = correction_count - trained_count
+    if pending_corrections < retrain_after:
+        return {
+            "correction_count": correction_count,
+            "pending_corrections": pending_corrections,
+            "retrained": False,
+        }
+
+    train_and_evaluate(
+        feedback_path=feedback_path,
+        model_path=model_path,
+        metrics_path=metrics_path,
+        confusion_matrix_path=confusion_matrix_path,
+        feedback_event_count=correction_count,
+    )
+    return {
+        "correction_count": correction_count,
+        "pending_corrections": 0,
+        "retrained": True,
+    }
 
 
 def _is_bare_filename(file_name: object) -> bool:

@@ -1,7 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
+import joblib
 import pandas as pd
 
 from src.ml_pipeline import (
@@ -11,7 +14,7 @@ from src.ml_pipeline import (
     predict_file_names,
     train_and_evaluate,
 )
-from src.feedback import load_feedback, save_correction
+from src.feedback import load_feedback, record_correction, save_correction
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -127,6 +130,116 @@ class MLPipelineTests(unittest.TestCase):
             self.assertEqual(metrics["feedback"]["final_training_rows"], 1201)
             model = load_model(output / "best_model.joblib")
             self.assertIn("feedbackonlykeyword", model.named_steps["tfidf"].vocabulary_)
+
+    def test_feedback_retrains_automatically_after_five_confirmed_corrections(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            feedback_path = output / "user_feedback.csv"
+            events_path = output / "user_feedback_events.jsonl"
+            model_path = output / "best_model.joblib"
+
+            with patch("src.feedback.train_and_evaluate") as train:
+                for index in range(4):
+                    result = record_correction(
+                        f"reviewed_receipt_{index}.pdf",
+                        "receipt",
+                        feedback_path,
+                        events_path,
+                        model_path,
+                    )
+                    self.assertFalse(result["retrained"])
+                train.assert_not_called()
+
+                result = record_correction(
+                    "reviewed_receipt_4.pdf",
+                    "receipt",
+                    feedback_path,
+                    events_path,
+                    model_path,
+                )
+                self.assertTrue(result["retrained"])
+                train.assert_called_once()
+                self.assertEqual(
+                    train.call_args.kwargs["feedback_event_count"], 5
+                )
+                self.assertEqual(train.call_args.kwargs["feedback_path"], feedback_path)
+                self.assertEqual(train.call_args.kwargs["model_path"], model_path)
+
+    def test_successful_automatic_training_waits_for_five_more_corrections(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            feedback_path = output / "user_feedback.csv"
+            events_path = output / "user_feedback_events.jsonl"
+            model_path = output / "best_model.joblib"
+
+            for index in range(5):
+                result = record_correction(
+                    f"reviewed_academic_{index}.pdf",
+                    "academic",
+                    feedback_path,
+                    events_path,
+                    model_path,
+                    metrics_path=output / "metrics.json",
+                    confusion_matrix_path=output / "confusion_matrix.png",
+                )
+
+            self.assertTrue(result["retrained"])
+            self.assertEqual(
+                load_model(model_path).sortiq_feedback_event_count, 5
+            )
+            result = record_correction(
+                "reviewed_academic_5.pdf",
+                "academic",
+                feedback_path,
+                events_path,
+                model_path,
+                metrics_path=output / "metrics.json",
+                confusion_matrix_path=output / "confusion_matrix.png",
+            )
+            self.assertFalse(result["retrained"])
+            self.assertEqual(result["pending_corrections"], 1)
+
+    def test_failed_automatic_retraining_preserves_previous_model_and_retries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            feedback_path = output / "user_feedback.csv"
+            events_path = output / "user_feedback_events.jsonl"
+            model_path = output / "best_model.joblib"
+            joblib.dump(SimpleNamespace(sortiq_feedback_event_count=0), model_path)
+            original_model = model_path.read_bytes()
+
+            with patch(
+                "src.feedback.train_and_evaluate",
+                side_effect=RuntimeError("simulated training failure"),
+            ) as train:
+                for index in range(4):
+                    record_correction(
+                        f"reviewed_resume_{index}.pdf",
+                        "resume",
+                        feedback_path,
+                        events_path,
+                        model_path,
+                    )
+                with self.assertRaisesRegex(RuntimeError, "simulated training failure"):
+                    record_correction(
+                        "reviewed_resume_4.pdf",
+                        "resume",
+                        feedback_path,
+                        events_path,
+                        model_path,
+                    )
+                self.assertEqual(model_path.read_bytes(), original_model)
+
+                with self.assertRaisesRegex(RuntimeError, "simulated training failure"):
+                    record_correction(
+                        "reviewed_resume_5.pdf",
+                        "resume",
+                        feedback_path,
+                        events_path,
+                        model_path,
+                    )
+                self.assertEqual(train.call_count, 2)
+                self.assertEqual(model_path.read_bytes(), original_model)
 
 
 if __name__ == "__main__":
