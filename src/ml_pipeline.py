@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import TruncatedSVD
+from sklearn.base import clone
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -190,9 +191,16 @@ def train_and_evaluate(
     metrics_path: str | Path = DEFAULT_METRICS_PATH,
     confusion_matrix_path: str | Path = DEFAULT_CONFUSION_MATRIX_PATH,
     svd_components: int = 100,
+    feedback_path: str | Path | None = None,
 ) -> dict:
-    """Compare baseline models on a fixed, group-aware holdout and save artifacts."""
+    """Compare candidates, then refit the selected model with optional corrections."""
     data = load_dataset(dataset_path)
+    feedback = None
+    if feedback_path is not None:
+        from src.feedback import load_feedback
+
+        feedback = load_feedback(feedback_path)
+
     train_indices, test_indices = grouped_train_test_split(data)
     x_train = data.iloc[train_indices]["file_name"].tolist()
     y_train = data.iloc[train_indices]["category"].to_numpy()
@@ -217,7 +225,6 @@ def train_and_evaluate(
         ),
     }
     evaluations = {}
-    fitted_models = {}
     for name, pipeline in candidates.items():
         started = time.perf_counter()
         pipeline.fit(x_train, y_train)
@@ -231,7 +238,6 @@ def train_and_evaluate(
             svd_components if name == "tfidf_svd_logistic_regression" else None
         )
         evaluations[name] = result
-        fitted_models[name] = pipeline
 
     best_name = max(
         evaluations,
@@ -241,6 +247,24 @@ def train_and_evaluate(
             evaluations[name]["accuracy"],
         ),
     )
+    final_training_data = data
+    if feedback is not None:
+        feedback_names = set(feedback["file_name"].str.casefold())
+        final_training_data = pd.concat(
+            [
+                data.loc[
+                    ~data["file_name"].str.casefold().isin(feedback_names)
+                ],
+                feedback,
+            ],
+            ignore_index=True,
+        )
+    final_model = clone(candidates[best_name])
+    final_model.fit(
+        final_training_data["file_name"].tolist(),
+        final_training_data["category"].to_numpy(),
+    )
+
     metrics = {
         "dataset": {
             "path": str(Path(dataset_path)),
@@ -262,6 +286,12 @@ def train_and_evaluate(
         },
         "models": evaluations,
         "selected_model": best_name,
+        "feedback": {
+            "used": feedback is not None,
+            "correction_count": len(feedback) if feedback is not None else 0,
+            "final_training_rows": len(final_training_data),
+            "retraining": "Manual; corrections are used only when a feedback file is supplied.",
+        },
     }
 
     model_path = Path(model_path)
@@ -270,7 +300,7 @@ def train_and_evaluate(
     model_path.parent.mkdir(parents=True, exist_ok=True)
     metrics_path.parent.mkdir(parents=True, exist_ok=True)
     confusion_matrix_path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(fitted_models[best_name], model_path)
+    joblib.dump(final_model, model_path)
     metrics_path.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     _save_confusion_matrix(
         evaluations[best_name]["confusion_matrix"], labels, confusion_matrix_path

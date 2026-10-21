@@ -11,6 +11,7 @@ from src.ml_pipeline import (
     predict_file_names,
     train_and_evaluate,
 )
+from src.feedback import load_feedback, save_correction
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -80,6 +81,52 @@ class MLPipelineTests(unittest.TestCase):
 
     def test_prediction_returns_empty_list_for_empty_input(self):
         self.assertEqual(predict_file_names(object(), []), [])
+
+    def test_feedback_saves_and_replaces_a_correction_locally(self):
+        with tempfile.TemporaryDirectory() as directory:
+            feedback_path = Path(directory) / "user_feedback.csv"
+            self.assertEqual(
+                save_correction("Review_Me.PDF", "academic", feedback_path), 1
+            )
+            self.assertEqual(
+                save_correction("review_me.pdf", "receipt", feedback_path), 1
+            )
+
+            feedback = load_feedback(feedback_path)
+            self.assertEqual(len(feedback), 1)
+            self.assertEqual(feedback.iloc[0]["file_name"], "review_me.pdf")
+            self.assertEqual(feedback.iloc[0]["extension"], ".pdf")
+            self.assertEqual(feedback.iloc[0]["category"], "receipt")
+
+    def test_feedback_rejects_paths_and_unapproved_categories(self):
+        with tempfile.TemporaryDirectory() as directory:
+            feedback_path = Path(directory) / "user_feedback.csv"
+            with self.assertRaisesRegex(ValueError, "filename, not a path"):
+                save_correction("C:\\private\\receipt.pdf", "receipt", feedback_path)
+            with self.assertRaisesRegex(ValueError, "one of"):
+                save_correction("receipt.pdf", "personal", feedback_path)
+            self.assertFalse(feedback_path.exists())
+
+    def test_training_explicitly_applies_local_feedback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            feedback_path = output / "user_feedback.csv"
+            save_correction(
+                "feedbackonlykeyword_grocery_receipt.pdf",
+                "receipt",
+                feedback_path,
+            )
+            metrics = train_and_evaluate(
+                model_path=output / "best_model.joblib",
+                metrics_path=output / "metrics.json",
+                confusion_matrix_path=output / "confusion_matrix.png",
+                feedback_path=feedback_path,
+            )
+
+            self.assertEqual(metrics["feedback"]["correction_count"], 1)
+            self.assertEqual(metrics["feedback"]["final_training_rows"], 1201)
+            model = load_model(output / "best_model.joblib")
+            self.assertIn("feedbackonlykeyword", model.named_steps["tfidf"].vocabulary_)
 
 
 if __name__ == "__main__":

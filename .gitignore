@@ -11,6 +11,7 @@ venv/
 models/*.joblib
 models/*.pkl
 !models/best_model.joblib
+data/user_feedback.csv
 
 # Local test files
 test_downloads/

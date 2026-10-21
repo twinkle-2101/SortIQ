@@ -45,3 +45,31 @@ highest predicted class probability). The function preserves input order,
 returns an empty list for an empty input, and rejects blank or non-string
 filenames. `load_model` raises a helpful `FileNotFoundError` if training has
 not yet produced the model file.
+
+## Learning from reviewed ambiguous files
+
+Predictions do not update the model automatically. After a person reviews a
+prediction, save the corrected filename and one approved category locally:
+
+```powershell
+python -c "from src.feedback import save_correction; save_correction('quarterly_store_invoice.pdf', 'receipt')"
+```
+
+By default this writes to `data/user_feedback.csv`, which is git-ignored
+because real filenames may be private. The feedback file uses the same
+`file_name`, `extension`, and `category` columns as the starter dataset. A new
+correction for the same filename replaces the earlier correction.
+
+Retraining is a separate, explicit action:
+
+```powershell
+python -m src.run_experiments --feedback data\user_feedback.csv
+```
+
+This reruns the fixed evaluation using only the original starter dataset, then
+fits the selected model on the starter data plus the reviewed corrections.
+Corrections replace matching starter rows in the final training data. The
+metrics record the feedback count and final training size. Without `--feedback`,
+the feedback file is not read or used. Keep feedback local and review labels
+before retraining; feedback does not alter a running model until the saved
+pipeline is reloaded.

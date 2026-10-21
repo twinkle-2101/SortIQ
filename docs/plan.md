@@ -17,6 +17,7 @@ Owns:
 - Fair train/test evaluation: accuracy, per-class precision/recall/F1, macro-F1, weighted-F1, confusion matrix.
 - TruncatedSVD comparison using the same evaluation split as the baseline models.
 - Save best complete pipeline and metrics.
+- Provide a local reviewed-correction workflow and explicit retraining option.
 - Write ML methodology/results for the report.
 
 Deliverables:
@@ -106,8 +107,8 @@ The app recommends these folders; users can review or override them.
 **Done when:** metrics are documented and file movement is isolated/tested.
 
 ### Stage 4 — Integrate model and frontend
-**Member A:** Choose model based on results and project needs; save/reload full pipeline; provide `load_model` and `predict_file_names`; document dependencies.
-**Member B:** Replace mock predictions with the model API; display predicted class/confidence/destination; allow category overrides and file selection; show source/destination/count and collision policy before confirmation.
+**Member A:** Choose model based on results and project needs; save/reload full pipeline; provide `load_model` and `predict_file_names`; document dependencies; store reviewed category corrections locally and use them only during an explicit retraining run.
+**Member B:** Replace mock predictions with the model API; display predicted class/confidence/destination; allow category overrides and file selection; optionally let users save their reviewed category for a later explicit retraining run; show source/destination/count and collision policy before confirmation.
 
 **Together:** test the same filenames in notebook and app; verify label consistency and missing-model error handling.
 
