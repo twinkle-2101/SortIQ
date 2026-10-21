@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment variables
+.env
+
+# Generated ML artifacts
+models/*.joblib
+models/*.pkl
+
+# Local test files
+test_downloads/
+downloads/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
