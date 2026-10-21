@@ -108,7 +108,7 @@ The app recommends these folders; users can review or override them.
 
 ### Stage 4 — Integrate model and frontend
 **Member A:** Choose model based on results and project needs; save/reload full pipeline; provide `load_model` and `predict_file_names`; document dependencies; store reviewed category corrections locally and automatically retrain after every five confirmed corrections.
-**Member B:** Replace mock predictions with the model API; display predicted class/confidence/destination; allow category overrides and file selection; save only user-confirmed corrections with `record_correction`, report retraining failures, and reload the model when it returns `retrained=True`; show source/destination/count and collision policy before confirmation.
+**Member B:** Replace mock predictions with the model API; display predicted class/confidence/destination; request a category correction only for ambiguous/low-confidence predictions (agree on the confidence threshold during UI implementation); allow overrides and file selection; save only user-confirmed corrections with `record_correction`; report retraining failures while retaining the previous model, and reload the model when it returns `retrained=True`; show source/destination/count and collision policy before confirmation.
 
 **Together:** test the same filenames in notebook and app; verify label consistency and missing-model error handling.
 
@@ -116,7 +116,7 @@ The app recommends these folders; users can review or override them.
 
 ### Stage 5 — SVD comparison and polish
 **Member A:** Compare `TruncatedSVD` after TF-IDF against the baseline using the same split; record component count, runtime, and metrics.
-**Member B:** Improve messages/loading states, add low-confidence review if supported, prepare a safe demo folder.
+**Member B:** Improve messages/loading states, flag low-confidence predictions for review without requiring input for confident predictions, prepare a safe demo folder.
 
 **Done when:** the required SVD comparison is reported and does not break the baseline.
 
