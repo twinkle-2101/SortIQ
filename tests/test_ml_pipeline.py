@@ -72,6 +72,15 @@ class MLPipelineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             predict_file_names(object(), [""])
 
+    def test_load_model_reports_missing_artifact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            missing_model = Path(directory) / "missing_model.joblib"
+            with self.assertRaisesRegex(FileNotFoundError, "Run python -m"):
+                load_model(missing_model)
+
+    def test_prediction_returns_empty_list_for_empty_input(self):
+        self.assertEqual(predict_file_names(object(), []), [])
+
 
 if __name__ == "__main__":
     unittest.main()

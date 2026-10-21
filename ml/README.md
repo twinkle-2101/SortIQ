@@ -25,3 +25,23 @@ python -m src.run_experiments
 
 Artifacts are written to `models/best_model.joblib`,
 `reports/model_metrics.json`, and `reports/confusion_matrix.png`.
+
+## Inference API
+
+`src.ml_pipeline` exposes the shared interface expected by the app:
+
+```python
+from src.ml_pipeline import load_model, predict_file_names
+
+model = load_model()  # models/best_model.joblib
+predictions = predict_file_names(
+    model,
+    ["machine_learning_course_notes.pdf", "orange_cat_photo.jpg"],
+)
+```
+
+Each result contains `file_name`, `predicted_category`, and `confidence` (the
+highest predicted class probability). The function preserves input order,
+returns an empty list for an empty input, and rejects blank or non-string
+filenames. `load_model` raises a helpful `FileNotFoundError` if training has
+not yet produced the model file.
