@@ -17,6 +17,7 @@ data/user_feedback_events.jsonl
 # Local test files
 test_downloads/
 downloads/
+data/demo_downloads/
 
 # OS and editor files
 .DS_Store

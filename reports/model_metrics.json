@@ -1,6 +1,6 @@
 {
   "dataset": {
-    "path": "C:\\Users\\Twinkle\\OneDrive\\Documents\\TE\\MLmini\\data\\file_dataset.csv",
+    "path": "/Users/shivamingulkar/Documents/ML mini project /SortIQ/data/file_dataset.csv",
     "rows": 1200,
     "class_counts": {
       "academic": 200,
@@ -430,7 +430,7 @@
           "predicted_category": "receipt"
         }
       ],
-      "runtime_seconds": 0.033322,
+      "runtime_seconds": 0.00772,
       "train_rows": 960,
       "test_rows": 240,
       "svd_components": null
@@ -729,7 +729,7 @@
           "predicted_category": "receipt"
         }
       ],
-      "runtime_seconds": 0.04695,
+      "runtime_seconds": 0.013626,
       "train_rows": 960,
       "test_rows": 240,
       "svd_components": null
@@ -1013,11 +1013,18 @@
           "predicted_category": "receipt"
         }
       ],
-      "runtime_seconds": 0.48108,
+      "runtime_seconds": 0.024627,
       "train_rows": 960,
       "test_rows": 240,
       "svd_components": 100
     }
   },
-  "selected_model": "tfidf_svd_logistic_regression"
+  "selected_model": "tfidf_svd_logistic_regression",
+  "feedback": {
+    "used": false,
+    "correction_count": 0,
+    "event_count": 0,
+    "final_training_rows": 1200,
+    "retraining": "Automatic after the configured correction threshold when a feedback file is supplied."
+  }
 }
