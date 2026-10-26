@@ -82,6 +82,17 @@ class MLPipelineTests(unittest.TestCase):
             with self.assertRaisesRegex(FileNotFoundError, "Run python -m"):
                 load_model(missing_model)
 
+    def test_load_model_rejects_a_different_scikit_learn_version(self):
+        with tempfile.TemporaryDirectory() as directory:
+            model_path = Path(directory) / "incompatible_model.joblib"
+            joblib.dump(
+                SimpleNamespace(sortiq_sklearn_version="0.0.0"),
+                model_path,
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "Install the version pinned"):
+                load_model(model_path)
+
     def test_prediction_returns_empty_list_for_empty_input(self):
         self.assertEqual(predict_file_names(object(), []), [])
 
@@ -100,6 +111,53 @@ class MLPipelineTests(unittest.TestCase):
             self.assertEqual(feedback.iloc[0]["file_name"], "review_me.pdf")
             self.assertEqual(feedback.iloc[0]["extension"], ".pdf")
             self.assertEqual(feedback.iloc[0]["category"], "receipt")
+
+    def test_recording_same_correction_twice_does_not_count_twice(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            feedback_path = output / "user_feedback.csv"
+            events_path = output / "user_feedback_events.jsonl"
+
+            first_result = record_correction(
+                "review_me.pdf",
+                "receipt",
+                feedback_path,
+                events_path,
+                output / "best_model.joblib",
+            )
+            second_result = record_correction(
+                "REVIEW_ME.PDF",
+                "receipt",
+                feedback_path,
+                events_path,
+                output / "best_model.joblib",
+            )
+
+            self.assertEqual(first_result["correction_count"], 1)
+            self.assertEqual(second_result["correction_count"], 1)
+            self.assertEqual(len(events_path.read_text(encoding="utf-8").splitlines()), 1)
+
+    def test_new_correction_after_category_change_is_recorded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            feedback_path = output / "user_feedback.csv"
+            events_path = output / "user_feedback_events.jsonl"
+            model_path = output / "best_model.joblib"
+
+            for category in ("academic", "receipt", "academic"):
+                result = record_correction(
+                    "ambiguous.pdf",
+                    category,
+                    feedback_path,
+                    events_path,
+                    model_path,
+                )
+
+            self.assertEqual(result["correction_count"], 3)
+            self.assertEqual(len(events_path.read_text(encoding="utf-8").splitlines()), 3)
+            self.assertEqual(
+                load_feedback(feedback_path).iloc[0]["category"], "academic"
+            )
 
     def test_feedback_rejects_paths_and_unapproved_categories(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -232,13 +290,24 @@ class MLPipelineTests(unittest.TestCase):
 
                 with self.assertRaisesRegex(RuntimeError, "simulated training failure"):
                     record_correction(
-                        "reviewed_resume_5.pdf",
+                        "reviewed_resume_4.pdf",
                         "resume",
                         feedback_path,
                         events_path,
                         model_path,
                     )
                 self.assertEqual(train.call_count, 2)
+                self.assertEqual(len(events_path.read_text(encoding="utf-8").splitlines()), 5)
+
+                with self.assertRaisesRegex(RuntimeError, "simulated training failure"):
+                    record_correction(
+                        "reviewed_resume_5.pdf",
+                        "resume",
+                        feedback_path,
+                        events_path,
+                        model_path,
+                    )
+                self.assertEqual(train.call_count, 3)
                 self.assertEqual(model_path.read_bytes(), original_model)
 
 

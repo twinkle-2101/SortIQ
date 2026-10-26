@@ -25,6 +25,9 @@ python -m src.run_experiments
 
 Artifacts are written to `models/best_model.joblib`,
 `reports/model_metrics.json`, and `reports/confusion_matrix.png`.
+The committed pipeline was trained using scikit-learn 1.9.0, which is pinned in
+`requirements.txt`; `load_model` reports a clear error when the installed
+scikit-learn version does not match the model artifact.
 
 ## Inference API
 
@@ -61,9 +64,10 @@ if result["retrained"]:
 ```
 
 Corrections are stored locally in `data/user_feedback.csv`; a git-ignored
-`data/user_feedback_events.jsonl` records each confirmed correction so repeated
-corrections to the same filename count as separate review actions. Both files
-may contain private filenames and should remain local.
+`data/user_feedback_events.jsonl` records confirmed correction events. Repeated
+submissions of the same filename and category are idempotent and do not count
+twice; a new category correction for that filename is a distinct event. Both
+files may contain private filenames and should remain local.
 
 After every five confirmed corrections since the previous successful training,
 the pipeline reruns the fixed baseline comparison and fits the selected model

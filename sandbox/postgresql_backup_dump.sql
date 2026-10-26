@@ -1,0 +1,2 @@
+CREATE TABLE users (id SERIAL PRIMARY KEY, name VARCHAR(255));
+INSERT INTO users VALUES (1, 'Alice');
