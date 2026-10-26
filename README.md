@@ -1,7 +1,7 @@
 # SortIQ — Smart Downloads Folder Cleaner 🧹
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Tests Passing](https://img.shields.io/badge/tests-35%20passed-brightgreen.svg)](tests/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Tests Passing](https://img.shields.io/badge/tests-passing-brightgreen.svg)](tests/)
 [![Streamlit App](https://img.shields.io/badge/UI-Streamlit-FF4B4B.svg)](app.py)
 
 SortIQ is a Python machine learning application that predicts file categories from filenames and extensions, recommends organized destination folders, and safely moves selected files only after explicit user confirmation.
@@ -54,11 +54,15 @@ Evaluated on the exact same stratified held-out test split (240 unseen filename 
 
 | Pipeline Candidate | Accuracy | Macro F1-Score | Weighted F1-Score | SVD Components | Fit+Eval Runtime |
 |---|---|---|---|---|---|
-| **TF-IDF + Multinomial Naive Bayes** | 74.2% | 0.716 | 0.716 | N/A | 0.008s |
-| **TF-IDF + Logistic Regression** | 83.3% | 0.829 | 0.829 | N/A | 0.014s |
-| **TF-IDF + TruncatedSVD + Logistic Regression (Selected)** | **84.6%** | **0.841** | **0.841** | **100** | **0.025s** |
+| **TF-IDF + Multinomial Naive Bayes** | 74.2% | 0.716 | 0.716 | N/A | 0.023s |
+| **TF-IDF + Logistic Regression** | 83.3% | 0.829 | 0.829 | N/A | 0.065s |
+| **TF-IDF + TruncatedSVD + Logistic Regression (Selected)** | **84.6%** | **0.841** | **0.841** | **100** | **0.473s** |
 
-> **Key Finding on SVD:** Applying TruncatedSVD (100 components) to the sparse TF-IDF feature space compacted the representation while filtering out noise, providing a +1.3% boost in accuracy and improving macro-F1 from 0.829 to 0.841.
+> **Key Finding on SVD:** On this synthetic holdout, adding 100 TruncatedSVD components improved accuracy by about 1.3 percentage points and macro-F1 from 0.829 to 0.841 compared with TF-IDF + Logistic Regression. Runtime is environment-dependent.
+
+The checked-in model was trained with scikit-learn 1.9.0. The exact version is
+pinned in `requirements.txt` because scikit-learn model artifacts are not
+guaranteed to be compatible across versions.
 
 ---
 
@@ -103,7 +107,7 @@ The app opens automatically at `http://localhost:8501`.
 
 ### 4. Run the Full Test Suite
 
-Execute all 35 unit and integration tests:
+Run all unit and integration tests:
 
 ```bash
 python -m pytest

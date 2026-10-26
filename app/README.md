@@ -15,11 +15,13 @@ The SortIQ frontend is an interactive, safety-first Streamlit web application de
    - Filenames are tokenized and processed through the trained TF-IDF + TruncatedSVD + Logistic Regression pipeline (`models/best_model.joblib`).
    - Each prediction includes a probability confidence score.
    - Predictions below the configurable threshold (default `0.65`) are highlighted as **Ambiguous / Needs Review**.
+   - Category correction controls are shown only for ambiguous predictions; confident predictions keep their model category without requiring user input.
 
 3. **Active Learning Retraining Loop**:
-   - Users can manually override any category recommendation using interactive dropdowns.
-   - Users can click **Save ML Feedback** to register confirmed corrections.
+   - Users can correct a flagged ambiguous prediction using its category selector.
+   - Users can click **Save Ambiguous Corrections** to register confirmed corrections.
    - When 5 reviewed corrections are accumulated, SortIQ automatically triggers retraining of the pipeline on starter data + feedback, re-evaluates the baseline models, updates `models/best_model.joblib`, and reloads the pipeline seamlessly without application restart.
+   - Re-submitting the same filename/category correction is idempotent and does not increment the retraining count.
 
 4. **Safe Dry-Run Preview**:
    - Before any file movement can occur, SortIQ computes an exact, read-only dry-run plan.
@@ -29,7 +31,7 @@ The SortIQ frontend is an interactive, safety-first Streamlit web application de
      - `Skip`: Skips moving colliding files.
 
 5. **Explicit User Confirmation**:
-   - File movement requires explicit user confirmation via an active confirmation checkbox.
+   - File movement requires explicit user confirmation via a checkbox tied to the current preview; changing the plan resets confirmation.
    - The execution button remains strictly disabled until confirmed.
    - Silent overwrites and file deletions are architecturally impossible.
 
@@ -48,6 +50,6 @@ The app will launch at `http://localhost:8501`.
 ### Disposable Demo Sandbox
 
 SortIQ includes a built-in sandbox for demonstration purposes:
-- In the sidebar, click **"Generate Demo Folder"**.
-- This creates `data/demo_downloads/` containing 12 realistic sample files across all 6 categories (academic notes, resumes, receipts, presentations, images, installers).
+- In the sidebar, click **"Use Sandbox"** or **"Reset Sandbox (25 Files)"**.
+- This uses the repository's `sandbox/` folder with sample files across the categories.
 - You can test the entire scan, predict, override, dry-run, and organize workflow safely without touching your real Downloads folder.
