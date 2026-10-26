@@ -42,5 +42,14 @@ class AppHelperTests(unittest.TestCase):
         self.assertIn("selected_model", metrics)
 
 
+    def test_ensure_sandbox_files(self):
+        from app import ensure_sandbox_files, get_sandbox_path
+        sandbox_path = get_sandbox_path()
+        self.assertTrue(sandbox_path.is_dir())
+        count = ensure_sandbox_files()
+        scanned = scan_directory(sandbox_path)
+        self.assertGreaterEqual(len(scanned), 20)
+
+
 if __name__ == "__main__":
     unittest.main()
