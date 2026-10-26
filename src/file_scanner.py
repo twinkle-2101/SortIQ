@@ -106,8 +106,8 @@ def scan_directory(
 
         for entry in entries:
             try:
-                # Only scan regular files (skip directories, symlinks to directories, sockets, etc.)
-                if not entry.is_file():
+                # Symlinks are excluded so a scan cannot target files outside the chosen folder.
+                if entry.is_symlink() or not entry.is_file():
                     continue
 
                 # Hidden file filter

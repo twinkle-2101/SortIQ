@@ -107,6 +107,25 @@ class FileScannerTests(unittest.TestCase):
             scanned_with_hidden = scan_directory(dir_path, include_hidden=True)
             self.assertEqual(len(scanned_with_hidden), 2)
 
+    def test_file_symlinks_are_excluded_from_scan(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            outside_file = root.parent / f"{root.name}_outside.txt"
+            outside_file.write_text("outside", encoding="utf-8")
+            link = root / "linked_file.txt"
+            try:
+                link.symlink_to(outside_file)
+            except (OSError, NotImplementedError) as exc:
+                outside_file.unlink()
+                self.skipTest(f"File symlinks are unavailable: {exc}")
+
+            try:
+                self.assertEqual(scan_directory(root), [])
+                self.assertTrue(outside_file.is_file())
+                self.assertEqual(outside_file.read_text(encoding="utf-8"), "outside")
+            finally:
+                outside_file.unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
     unittest.main()

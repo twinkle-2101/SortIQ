@@ -1,5 +1,7 @@
 """Unit tests for organizer: dry-run planning, collision handling, and safe moves (Tests F3-F8)."""
 
+import errno
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,12 +11,97 @@ from src.organizer import (
     COLLISION_RENAME,
     COLLISION_SKIP,
     execute_move,
+    organization_plan_signature,
     plan_organization,
     resolve_collision_path,
 )
 
 
 class OrganizerTests(unittest.TestCase):
+    def test_plan_rejects_path_traversal_filenames_and_mappings(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir).resolve()
+            source_file = root / "notes.pdf"
+            source_file.write_text("notes", encoding="utf-8")
+            traversal_filename = plan_organization(
+                [
+                    {
+                        "file_name": "..\\outside.pdf",
+                        "source_path": source_file,
+                        "category": "academic",
+                    }
+                ],
+                destination_root=root,
+            )
+            traversal_mapping = plan_organization(
+                [
+                    {
+                        "file_name": source_file.name,
+                        "source_path": source_file,
+                        "category": "academic",
+                    }
+                ],
+                destination_root=root,
+                custom_mapping={"academic": "..\\outside"},
+            )
+
+            self.assertEqual(traversal_filename[0].status, "error")
+            self.assertIn("Invalid filename", traversal_filename[0].error_message)
+            self.assertEqual(traversal_mapping[0].status, "error")
+            self.assertIn("inside the selected root", traversal_mapping[0].error_message)
+            self.assertTrue(source_file.is_file())
+
+    def test_plan_signature_changes_when_category_or_destination_changes(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir).resolve()
+            source_file = root / "notes.pdf"
+            source_file.write_text("notes", encoding="utf-8")
+            academic_plan = plan_organization(
+                [
+                    {
+                        "file_name": source_file.name,
+                        "source_path": source_file,
+                        "category": "academic",
+                    }
+                ],
+                destination_root=root,
+            )
+            receipt_plan = plan_organization(
+                [
+                    {
+                        "file_name": source_file.name,
+                        "source_path": source_file,
+                        "category": "receipt",
+                    }
+                ],
+                destination_root=root,
+            )
+
+            academic_signature = organization_plan_signature(
+                academic_plan, root, COLLISION_RENAME
+            )
+            receipt_signature = organization_plan_signature(
+                receipt_plan, root, COLLISION_RENAME
+            )
+            other_policy_signature = organization_plan_signature(
+                academic_plan, root, COLLISION_SKIP
+            )
+            original_signature = organization_plan_signature(
+                academic_plan, root, COLLISION_RENAME
+            )
+            source_stat = source_file.stat()
+            os.utime(
+                source_file,
+                ns=(source_stat.st_atime_ns, source_stat.st_mtime_ns + 1_000_000_000),
+            )
+            changed_file_signature = organization_plan_signature(
+                academic_plan, root, COLLISION_RENAME
+            )
+
+            self.assertNotEqual(academic_signature, receipt_signature)
+            self.assertNotEqual(academic_signature, other_policy_signature)
+            self.assertNotEqual(original_signature, changed_file_signature)
+
     def test_f3_preview_recommendations_changes_nothing(self):
         """Test F3: Preview recommendations: files remain completely unchanged."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -190,6 +277,65 @@ class OrganizerTests(unittest.TestCase):
             self.assertEqual(results_skip["skipped_count"], 1)
             self.assertTrue(source_file2.is_file())
 
+    def test_move_does_not_overwrite_destination_created_after_preview(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir).resolve()
+            source_file = root / "notes.pdf"
+            destination_file = root / "Academic" / "notes.pdf"
+            source_file.write_text("source", encoding="utf-8")
+            plan = plan_organization(
+                [
+                    {
+                        "file_name": source_file.name,
+                        "source_path": source_file,
+                        "category": "academic",
+                    }
+                ],
+                destination_root=root,
+            )
+            real_link = os.link
+
+            def simulate_concurrent_destination(source, destination):
+                Path(destination).write_text("existing", encoding="utf-8")
+                return real_link(source, destination)
+
+            with patch(
+                "src.organizer.os.link",
+                side_effect=simulate_concurrent_destination,
+            ):
+                result = execute_move(plan, confirmed=True)
+
+            self.assertEqual(result["moved_count"], 0)
+            self.assertEqual(result["failed_count"], 1)
+            self.assertEqual(source_file.read_text(encoding="utf-8"), "source")
+            self.assertEqual(destination_file.read_text(encoding="utf-8"), "existing")
+
+    def test_cross_device_move_uses_exclusive_copy_fallback(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir).resolve()
+            source_file = root / "notes.pdf"
+            source_file.write_text("source", encoding="utf-8")
+            plan = plan_organization(
+                [
+                    {
+                        "file_name": source_file.name,
+                        "source_path": source_file,
+                        "category": "academic",
+                    }
+                ],
+                destination_root=root,
+            )
+            with patch(
+                "src.organizer.os.link",
+                side_effect=OSError(errno.EXDEV, "cross-device"),
+            ):
+                result = execute_move(plan, confirmed=True)
+
+            destination_file = root / "Academic" / "notes.pdf"
+            self.assertEqual(result["moved_count"], 1)
+            self.assertFalse(source_file.exists())
+            self.assertEqual(destination_file.read_text(encoding="utf-8"), "source")
+
     def test_f8_permission_and_move_error_handling(self):
         """Test F8: Permission or move errors report clear per-file failure."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -206,8 +352,11 @@ class OrganizerTests(unittest.TestCase):
             ]
             plan = plan_organization(items, destination_root=dir_path)
 
-            # Mock shutil.move to simulate a PermissionError
-            with patch("shutil.move", side_effect=PermissionError("Access denied")):
+            # Mock the no-overwrite move primitive to simulate a PermissionError
+            with patch(
+                "src.organizer.os.link",
+                side_effect=PermissionError("Access denied"),
+            ):
                 results = execute_move(plan, confirmed=True)
 
             self.assertEqual(results["failed_count"], 1)

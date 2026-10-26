@@ -1,7 +1,11 @@
 """Safe file organizer with dry-run planning, collision resolution, and explicit confirmation."""
 
+import errno
+import hashlib
+import json
 import os
 import shutil
+import stat
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -94,6 +98,47 @@ def plan_organization(
         folder_name = get_destination_folder(category, custom_mapping)
         dest_dir = (root_dir / folder_name).resolve()
         intended_target = (dest_dir / file_name).resolve()
+
+        if (
+            not isinstance(file_name, str)
+            or not file_name
+            or Path(file_name).name != file_name
+            or "/" in file_name
+            or "\\" in file_name
+            or file_name in {".", ".."}
+        ):
+            plan.append(
+                MovePlanItem(
+                    file_name=str(file_name),
+                    source_path=source_path,
+                    category=category,
+                    destination_dir=dest_dir,
+                    intended_destination_path=intended_target,
+                    resolved_destination_path=intended_target,
+                    collision_detected=False,
+                    status="error",
+                    error_message="Invalid filename; expected a basename without path separators.",
+                )
+            )
+            continue
+
+        try:
+            dest_dir.relative_to(root_dir)
+        except ValueError:
+            plan.append(
+                MovePlanItem(
+                    file_name=file_name,
+                    source_path=source_path,
+                    category=category,
+                    destination_dir=dest_dir,
+                    intended_destination_path=intended_target,
+                    resolved_destination_path=intended_target,
+                    collision_detected=False,
+                    status="error",
+                    error_message="Destination folder must be inside the selected root directory.",
+                )
+            )
+            continue
 
         # Validation 1: Check source file existence
         if not source_path.is_file():
@@ -258,7 +303,7 @@ def execute_move(
                 )
                 continue
 
-            shutil.move(str(item.source_path), str(target_path))
+            _move_without_overwrite(item.source_path, target_path)
             results["moved_count"] += 1
             results["moved"].append(
                 {
@@ -279,3 +324,80 @@ def execute_move(
             )
 
     return results
+
+
+def _move_without_overwrite(source_path: Path, target_path: Path) -> None:
+    """Move a file without replacing a destination created during execution."""
+    try:
+        os.link(source_path, target_path)
+    except OSError as exc:
+        cross_device_errors = {
+            errno.EXDEV,
+            errno.EPERM,
+            errno.EACCES,
+            getattr(errno, "EOPNOTSUPP", errno.EPERM),
+            getattr(errno, "ENOTSUP", errno.EPERM),
+        }
+        if exc.errno not in cross_device_errors:
+            raise
+        _copy_to_new_path(source_path, target_path)
+    else:
+        try:
+            source_path.unlink()
+        except OSError:
+            target_path.unlink()
+            raise
+
+
+def _copy_to_new_path(source_path: Path, target_path: Path) -> None:
+    """Copy across filesystems using exclusive creation, then remove the source."""
+    source_mode = stat.S_IMODE(source_path.stat().st_mode)
+    descriptor = os.open(
+        target_path,
+        os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+        source_mode,
+    )
+    try:
+        with os.fdopen(descriptor, "wb") as target_file:
+            with source_path.open("rb") as source_file:
+                shutil.copyfileobj(source_file, target_file)
+            target_file.flush()
+            os.fsync(target_file.fileno())
+        shutil.copystat(source_path, target_path)
+        source_path.unlink()
+    except OSError:
+        if target_path.exists():
+            target_path.unlink()
+        raise
+
+
+def organization_plan_signature(
+    plan: list[MovePlanItem],
+    destination_root: str | Path,
+    collision_policy: str,
+) -> str:
+    """Fingerprint the exact preview so confirmation cannot carry across changes."""
+    payload = {
+        "destination_root": str(Path(destination_root).expanduser().resolve()),
+        "collision_policy": collision_policy,
+        "items": [
+            {
+                "source": str(item.source_path),
+                "source_snapshot": _source_snapshot(item.source_path),
+                "destination": str(item.resolved_destination_path),
+                "category": item.category,
+                "status": item.status,
+            }
+            for item in plan
+        ],
+    }
+    serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _source_snapshot(source_path: Path) -> tuple[int, int] | None:
+    try:
+        source_stat = source_path.stat()
+    except OSError:
+        return None
+    return source_stat.st_size, source_stat.st_mtime_ns
