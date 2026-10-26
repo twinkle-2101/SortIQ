@@ -13,6 +13,7 @@ import joblib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.decomposition import TruncatedSVD
 from sklearn.base import clone
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -268,10 +269,21 @@ def train_and_evaluate(
         final_training_data["category"].to_numpy(),
     )
     final_model.sortiq_feedback_event_count = feedback_event_count
+    final_model.sortiq_sklearn_version = sklearn.__version__
+
+    dataset_path_value = Path(dataset_path).resolve()
+    try:
+        dataset_path_value = dataset_path_value.relative_to(ROOT.resolve())
+    except ValueError:
+        pass
 
     metrics = {
+        "software_versions": {
+            "scikit_learn": sklearn.__version__,
+            "numpy": np.__version__,
+        },
         "dataset": {
-            "path": str(Path(dataset_path)),
+            "path": str(dataset_path_value),
             "rows": len(data),
             "class_counts": {
                 label: int(count)
@@ -374,7 +386,15 @@ def load_model(model_path: str | Path = DEFAULT_MODEL_PATH):
             f"Model file not found: {model_path}. "
             "Run python -m src.run_experiments to train it."
         )
-    return joblib.load(model_path)
+    model = joblib.load(model_path)
+    model_version = getattr(model, "sortiq_sklearn_version", None)
+    if model_version != sklearn.__version__:
+        raise RuntimeError(
+            f"Model was trained with scikit-learn {model_version or 'an unknown version'}, "
+            f"but the current environment uses {sklearn.__version__}. "
+            "Install the version pinned in requirements.txt or retrain the model."
+        )
+    return model
 
 
 def predict_file_names(model, file_names: Iterable[str]) -> list[dict[str, object]]:

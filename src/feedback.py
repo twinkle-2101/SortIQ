@@ -1,6 +1,7 @@
 """Local, user-reviewed corrections with batched automatic model retraining."""
 
 import json
+import uuid
 from pathlib import Path
 
 import pandas as pd
@@ -111,18 +112,44 @@ def record_correction(
     confusion_matrix_path = Path(confusion_matrix_path)
     save_correction(file_name, category, feedback_path)
 
-    event = {
-        "file_name": file_name,
-        "extension": Path(file_name).suffix.lower(),
-        "category": category,
-    }
     events_path.parent.mkdir(parents=True, exist_ok=True)
-    with events_path.open("a", encoding="utf-8", newline="\n") as event_file:
-        event_file.write(json.dumps(event) + "\n")
-        event_file.flush()
+    latest_category_by_filename = {}
+    correction_count = 0
+    if events_path.exists():
+        with events_path.open(encoding="utf-8") as event_file:
+            for line_number, line in enumerate(event_file, start=1):
+                if not line.strip():
+                    continue
+                try:
+                    previous_event = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise ValueError(
+                        f"Invalid feedback event at {events_path}:{line_number}"
+                    ) from exc
+                if (
+                    not isinstance(previous_event, dict)
+                    or not isinstance(previous_event.get("file_name"), str)
+                    or not isinstance(previous_event.get("category"), str)
+                ):
+                    raise ValueError(
+                        f"Invalid feedback event at {events_path}:{line_number}"
+                    )
+                latest_category_by_filename[
+                    previous_event["file_name"].casefold()
+                ] = previous_event["category"].casefold()
+                correction_count += 1
 
-    with events_path.open(encoding="utf-8") as event_file:
-        correction_count = sum(1 for line in event_file if line.strip())
+    if latest_category_by_filename.get(file_name.casefold()) != category.casefold():
+        event = {
+            "correction_id": uuid.uuid4().hex,
+            "file_name": file_name,
+            "extension": Path(file_name).suffix.lower(),
+            "category": category,
+        }
+        with events_path.open("a", encoding="utf-8", newline="\n") as event_file:
+            event_file.write(json.dumps(event) + "\n")
+            event_file.flush()
+        correction_count += 1
 
     trained_count = 0
     if model_path.is_file():
