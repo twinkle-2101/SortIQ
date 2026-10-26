@@ -4,11 +4,76 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from streamlit.testing.v1 import AppTest
+
 from app import create_demo_folder, load_model_metrics, rule_based_fallback_predict
 from src.file_scanner import scan_directory
 
 
 class AppHelperTests(unittest.TestCase):
+    def test_category_review_controls_are_only_shown_for_ambiguous_files(self):
+        app_path = Path(__file__).resolve().parents[1] / "app.py"
+        app = AppTest.from_file(str(app_path), default_timeout=30).run()
+        self.assertFalse(app.exception)
+
+        predictions = app.session_state["predictions"]
+        threshold = next(
+            slider.value
+            for slider in app.slider
+            if slider.label == "Ambiguity Review Threshold"
+        )
+        ambiguous_files = {
+            file_name
+            for file_name, prediction in predictions.items()
+            if prediction.get("confidence", 0.5) < threshold
+        }
+        review_controls = {
+            selectbox.label.removeprefix("Review category for ")
+            for selectbox in app.selectbox
+            if selectbox.label.startswith("Review category for ")
+        }
+
+        self.assertEqual(review_controls, ambiguous_files)
+
+    def test_confirmation_is_reset_when_review_changes_the_move_plan(self):
+        app_path = Path(__file__).resolve().parents[1] / "app.py"
+        app = AppTest.from_file(str(app_path), default_timeout=30).run()
+        confirmation = next(
+            checkbox
+            for checkbox in app.checkbox
+            if checkbox.label.startswith("I have verified the dry-run ledger")
+        )
+        confirmation.check().run()
+        execute_button = next(
+            button
+            for button in app.button
+            if button.label == "Execute File Organization"
+        )
+        self.assertFalse(execute_button.disabled)
+
+        category_control = next(
+            selectbox
+            for selectbox in app.selectbox
+            if selectbox.label.startswith("Review category for ")
+        )
+        alternate_category = next(
+            option for option in category_control.options if option != category_control.value
+        )
+        category_control.select(alternate_category).run()
+
+        confirmation = next(
+            checkbox
+            for checkbox in app.checkbox
+            if checkbox.label.startswith("I have verified the dry-run ledger")
+        )
+        execute_button = next(
+            button
+            for button in app.button
+            if button.label == "Execute File Organization"
+        )
+        self.assertFalse(confirmation.value)
+        self.assertTrue(execute_button.disabled)
+
     def test_rule_based_fallback_predict(self):
         names = [
             "machine_learning_lecture_notes.pdf",

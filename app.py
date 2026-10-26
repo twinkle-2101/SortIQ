@@ -39,8 +39,10 @@ from src.organizer import (
     COLLISION_RENAME,
     COLLISION_SKIP,
     execute_move,
+    organization_plan_signature,
     plan_organization,
 )
+from src.review import category_for_file, get_pending_corrections
 
 # Page configuration
 st.set_page_config(
@@ -698,7 +700,11 @@ with st.sidebar:
                         "Model": m_name.replace("tfidf_", "").replace("_", " ").title(),
                         "Accuracy": f"{m_data.get('accuracy', 0)*100:.1f}%",
                         "Macro-F1": f"{m_data.get('macro_f1', 0)*100:.1f}%",
-                        "SVD Components": m_data.get("svd_components") or "None",
+                        "SVD Components": (
+                            str(m_data["svd_components"])
+                            if m_data.get("svd_components") is not None
+                            else "None"
+                        ),
                         "Runtime": f"{m_data.get('runtime_seconds', 0):.4f}s",
                     })
                 st.dataframe(pd.DataFrame(comp_data), use_container_width=True, hide_index=True)
@@ -852,7 +858,7 @@ else:
     st.markdown(
         f'<div class="editorial-sub">SortIQ classifies each file into 6 categories. '
         f'Predictions below {int(confidence_threshold*100)}% are highlighted as ambiguous. '
-        f'Review recommendations below, override any labels, and confirm which files to move.</div>',
+        f'Review only low-confidence predictions, then confirm which files to move.</div>',
         unsafe_allow_html=True,
     )
 
@@ -870,6 +876,8 @@ else:
     # Initialize review state
     if "user_overrides" not in st.session_state:
         st.session_state["user_overrides"] = {}
+    if "submitted_feedback" not in st.session_state:
+        st.session_state["submitted_feedback"] = {}
     if "selected_files" not in st.session_state:
         st.session_state["selected_files"] = {f.file_name: True for f in scanned_files}
 
@@ -878,6 +886,13 @@ else:
     ambiguous_count = sum(
         1 for f in scanned_files
         if pred_map.get(f.file_name, {}).get("confidence", 0.5) < confidence_threshold
+    )
+    pending_corrections = get_pending_corrections(
+        [file_info.file_name for file_info in scanned_files],
+        pred_map,
+        st.session_state["user_overrides"],
+        st.session_state["submitted_feedback"],
+        confidence_threshold,
     )
 
     # Filter selector
@@ -920,8 +935,6 @@ else:
 
     # Editorial Voice-Row Card Deck
     reviewed_items = []
-    overridden_count = 0
-
     st.markdown('<div class="voice-deck">', unsafe_allow_html=True)
 
     for index, file_info in enumerate(visible_files):
@@ -931,10 +944,16 @@ else:
         conf = float(pred.get("confidence", 0.5))
 
         is_selected = st.session_state["selected_files"].get(fname, True)
-        current_cat = st.session_state["user_overrides"].get(fname, predicted_cat)
-
-        if current_cat != predicted_cat:
-            overridden_count += 1
+        is_ambiguous = conf < confidence_threshold
+        if not is_ambiguous:
+            st.session_state["user_overrides"].pop(fname, None)
+        current_cat = category_for_file(
+            fname,
+            predicted_cat,
+            conf,
+            confidence_threshold,
+            st.session_state["user_overrides"],
+        )
 
         row_col1, row_col2, row_col3, row_col4 = st.columns([0.4, 4.4, 2.4, 2.8])
 
@@ -973,17 +992,21 @@ else:
             st.markdown(f"{cat_badge} {conf_badge}", unsafe_allow_html=True)
 
         with row_col4:
-            cat_idx = category_list.index(current_cat) if current_cat in category_list else 0
-            new_cat = st.selectbox(
-                f"Category for {fname}",
-                options=category_list,
-                index=cat_idx,
-                key=f"cat_{fname}",
-                label_visibility="collapsed",
-            )
-            if new_cat != current_cat:
-                st.session_state["user_overrides"][fname] = new_cat
-                st.rerun()
+            if is_ambiguous:
+                cat_idx = category_list.index(current_cat) if current_cat in category_list else 0
+                new_cat = st.selectbox(
+                    f"Review category for {fname}",
+                    options=category_list,
+                    index=cat_idx,
+                    key=f"cat_{fname}",
+                    label_visibility="collapsed",
+                )
+                if new_cat != current_cat:
+                    st.session_state["user_overrides"][fname] = new_cat
+                    st.rerun()
+            else:
+                new_cat = predicted_cat
+                st.caption("No review needed")
 
             dest_folder = get_destination_folder(new_cat)
             st.caption(f"Destination: `{dest_folder}/`")
@@ -1000,14 +1023,14 @@ else:
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Active learning submission banner
-    if overridden_count > 0:
+    if pending_corrections:
         fb_col1, fb_col2 = st.columns([4, 1.5])
         with fb_col1:
             st.markdown(
                 f"""
                 <div style="background: #ffffff; border: 1px solid #e7e5e4; border-left: 3px solid #292524; border-radius: 12px; padding: 14px 18px;">
                     <div style="font-weight: 500; font-size: 13.5px; color: #0c0a09;">
-                        Active Learning Feedback ({overridden_count} correction{'s' if overridden_count > 1 else ''} pending)
+                        Active Learning Feedback ({len(pending_corrections)} correction{'s' if len(pending_corrections) > 1 else ''} pending)
                     </div>
                     <div style="font-size: 12.5px; color: #777169; margin-top: 2px;">
                         Confirmed corrections are saved locally. The pipeline retrains automatically after every 5 confirmed corrections.
@@ -1017,13 +1040,23 @@ else:
                 unsafe_allow_html=True,
             )
         with fb_col2:
-            if st.button("💾 Submit Corrections", use_container_width=True, type="secondary"):
+            if st.button("💾 Save Ambiguous Corrections", use_container_width=True, type="secondary"):
                 retrained_any = False
-                for fname, new_cat in st.session_state["user_overrides"].items():
-                    res = record_correction(fname, new_cat)
+                recorded_count = 0
+                for fname, new_cat in pending_corrections.items():
+                    try:
+                        res = record_correction(fname, new_cat)
+                    except Exception as feedback_error:
+                        st.error(f"Could not save correction for {fname}: {feedback_error}")
+                        continue
+                    st.session_state["submitted_feedback"][fname] = new_cat
+                    recorded_count += 1
                     if res.get("retrained"):
                         retrained_any = True
-                st.success(f"Recorded {overridden_count} correction(s) to training feedback dataset.")
+                if recorded_count:
+                    st.success(
+                        f"Saved {recorded_count} confirmed ambiguous correction(s)."
+                    )
                 if retrained_any:
                     st.balloons()
                     st.success("🎉 Threshold reached: Model automatically retrained and reloaded!")
@@ -1145,18 +1178,35 @@ else:
             unsafe_allow_html=True,
         )
 
+        current_plan_signature = organization_plan_signature(
+            plan,
+            current_path,
+            collision_policy,
+        )
+        if st.session_state.get("preview_plan_signature") != current_plan_signature:
+            st.session_state["explicit_confirm_checkbox"] = False
+            st.session_state["confirmed_plan_signature"] = None
+            st.session_state["preview_plan_signature"] = current_plan_signature
+
         confirm_checkbox = st.checkbox(
             f"I have verified the dry-run ledger and explicitly authorize moving {len(reviewed_items)} file(s).",
             value=False,
             key="explicit_confirm_checkbox",
         )
+        if confirm_checkbox:
+            st.session_state["confirmed_plan_signature"] = current_plan_signature
 
         exec_col, reset_col = st.columns([2.5, 1])
         with exec_col:
             execute_btn = st.button(
                 "Execute File Organization",
                 type="primary",
-                disabled=not confirm_checkbox or not reviewed_items,
+                disabled=(
+                    not confirm_checkbox
+                    or st.session_state.get("confirmed_plan_signature")
+                    != current_plan_signature
+                    or not reviewed_items
+                ),
                 use_container_width=True,
             )
         with reset_col:
