@@ -9,10 +9,12 @@ from streamlit.testing.v1 import AppTest
 from app import (
     create_demo_folder,
     create_fresh_demo_folder,
+    load_model,
     load_model_metrics,
     rule_based_fallback_predict,
 )
 from src.file_scanner import scan_directory
+from src.ml_pipeline import predict_file_names
 from src.organizer import plan_organization
 
 
@@ -135,6 +137,36 @@ class AppHelperTests(unittest.TestCase):
                 any(button.label == "Demo folder loaded ✓" for button in app.button)
             )
 
+    def test_name_conflict_filter_shows_only_colliding_demo_files(self):
+        app_path = Path(__file__).resolve().parents[1] / "app.py"
+        app = AppTest.from_file(str(app_path), default_timeout=30).run()
+        conflict_filter = next(
+            option
+            for option in next(
+                item for item in app.selectbox if item.label == "Show"
+            ).options
+            if option.startswith("Name conflicts")
+        )
+        self.assertEqual(conflict_filter, "Name conflicts (3)")
+
+        next(item for item in app.selectbox if item.label == "Show").select(
+            conflict_filter
+        ).run()
+
+        visible_name_inputs = {
+            item.key.removeprefix("destination_name_")
+            for item in app.text_input
+            if item.key.startswith("destination_name_")
+        }
+        self.assertEqual(
+            visible_name_inputs,
+            {
+                "computer_networks_unit4_lecture_notes.pdf",
+                "alex_morgan_software_engineer_resume.pdf",
+                "amazon_order_tax_invoice_10928.pdf",
+            },
+        )
+
     def test_each_fresh_demo_run_has_a_clean_and_consistent_preview(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             demo_parent = Path(temporary_directory)
@@ -148,6 +180,15 @@ class AppHelperTests(unittest.TestCase):
                 {file_info.file_name for file_info in second_files},
             )
             self.assertEqual(len(first_files), 40)
+            model = load_model()
+            predictions = predict_file_names(
+                model,
+                [file_info.file_name for file_info in first_files],
+            )
+            predicted_categories = {
+                prediction["file_name"]: prediction["predicted_category"]
+                for prediction in predictions
+            }
             for run_dir, files in (
                 (first_run, first_files),
                 (second_run, second_files),
@@ -157,14 +198,27 @@ class AppHelperTests(unittest.TestCase):
                         {
                             "file_name": file_info.file_name,
                             "source_path": file_info.full_path,
-                            "category": "other",
+                            "category": predicted_categories[file_info.file_name],
                         }
                         for file_info in files
                     ],
                     destination_root=run_dir,
                 )
                 self.assertEqual(len(plan), 40)
-                self.assertTrue(all(item.status == "ready" for item in plan))
+                collision_items = [
+                    item for item in plan if item.status == "rename"
+                ]
+                self.assertEqual(
+                    {item.file_name for item in collision_items},
+                    {
+                        "computer_networks_unit4_lecture_notes.pdf",
+                        "alex_morgan_software_engineer_resume.pdf",
+                        "amazon_order_tax_invoice_10928.pdf",
+                    },
+                )
+                self.assertTrue(
+                    all(item.status == "ready" for item in plan if item not in collision_items)
+                )
 
     def test_review_only_allows_renaming_when_destination_collides(self):
         app_path = Path(__file__).resolve().parents[1] / "app.py"

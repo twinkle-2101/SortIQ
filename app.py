@@ -658,6 +658,26 @@ def create_fresh_demo_folder(base_dir: Path | None = None) -> Path:
     for source_file in SANDBOX_DIR.iterdir():
         if source_file.is_file():
             shutil.copy2(source_file, run_dir / source_file.name)
+
+    demo_collisions = {
+        "Academic": (
+            "computer_networks_unit4_lecture_notes.pdf",
+            "Existing demo copy: archived Computer Networks lecture notes.",
+        ),
+        "Resumes": (
+            "alex_morgan_software_engineer_resume.pdf",
+            "Existing demo copy: previous resume version for collision testing.",
+        ),
+        "Receipts": (
+            "amazon_order_tax_invoice_10928.pdf",
+            "Existing demo copy: archived order invoice for collision testing.",
+        ),
+    }
+    for folder_name, (file_name, content) in demo_collisions.items():
+        destination_dir = run_dir / folder_name
+        destination_dir.mkdir()
+        (destination_dir / file_name).write_text(content, encoding="utf-8")
+
     return run_dir
 
 
@@ -1030,6 +1050,30 @@ else:
         1 for f in scanned_files
         if pred_map.get(f.file_name, {}).get("confidence", 0.5) < confidence_threshold
     )
+    name_conflict_files = set()
+    for file_info in scanned_files:
+        prediction = pred_map.get(
+            file_info.file_name,
+            {"predicted_category": "other", "confidence": 0.5},
+        )
+        current_category = category_for_file(
+            file_info.file_name,
+            prediction["predicted_category"],
+            float(prediction.get("confidence", 0.5)),
+            confidence_threshold,
+            st.session_state["user_overrides"],
+        )
+        destination = (
+            Path(current_path)
+            / get_destination_folder(current_category)
+            / file_info.file_name
+        )
+        if (
+            destination.exists()
+            and destination.resolve() != Path(file_info.full_path).resolve()
+        ):
+            name_conflict_files.add(file_info.file_name)
+
     pending_corrections = get_pending_corrections(
         [file_info.file_name for file_info in scanned_files],
         pred_map,
@@ -1050,7 +1094,8 @@ else:
 
         # Filter selector
         ambiguous_filter = f"Needs review ({ambiguous_count})"
-        filter_options = ["All files", ambiguous_filter] + [
+        name_conflict_filter = f"Name conflicts ({len(name_conflict_files)})"
+        filter_options = ["All files", ambiguous_filter, name_conflict_filter] + [
             category.capitalize() for category in category_list
         ]
         active_filter = st.selectbox(
@@ -1070,6 +1115,9 @@ else:
             visible_files.append(f)
         elif active_filter == ambiguous_filter:
             if conf < confidence_threshold:
+                visible_files.append(f)
+        elif active_filter == name_conflict_filter:
+            if f.file_name in name_conflict_files:
                 visible_files.append(f)
         else:
             if pred_cat.lower() == active_filter.lower():
