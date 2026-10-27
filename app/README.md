@@ -14,7 +14,7 @@ The SortIQ frontend is an interactive, safety-first Streamlit web application de
 2. **ML Classification & Ambiguity Detection**:
    - Filenames are tokenized and processed through the trained TF-IDF + TruncatedSVD + Logistic Regression pipeline (`models/best_model.joblib`).
    - Each prediction includes a probability confidence score.
-   - Predictions below the configurable threshold (default `0.65`) are highlighted as **Ambiguous / Needs Review**.
+   - Predictions below the configurable threshold (default `0.75`) are highlighted as **Ambiguous / Needs Review**.
    - Category correction controls are shown only for ambiguous predictions; confident predictions keep their model category without requiring user input.
 
 3. **Active Learning Retraining Loop**:
@@ -50,6 +50,6 @@ The app will launch at `http://localhost:8501`.
 ### Disposable Demo Sandbox
 
 SortIQ includes a built-in sandbox for demonstration purposes:
-- In the sidebar, click **"Use Sandbox"** or **"Reset Sandbox (25 Files)"**.
-- This uses the repository's `sandbox/` folder with sample files across the categories.
+- Click **"Use demo folder"** to load the repository's `sandbox/` folder; the button changes to **"Demo folder loaded"** once its files are scanned.
+- The sandbox is populated with 40 realistic sample files across the categories. Use **"Refresh Demo Folder"** in the sidebar to restore missing samples.
 - You can test the entire scan, predict, override, dry-run, and organize workflow safely without touching your real Downloads folder.

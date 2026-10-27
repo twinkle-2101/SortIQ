@@ -1,0 +1,2 @@
+2026-10-26T14:32:18Z INFO request_id=demo-1842 route=/api/files status=200 duration_ms=42
+2026-10-26T14:33:07Z WARN request_id=demo-1843 route=/api/predict status=503 retry=1

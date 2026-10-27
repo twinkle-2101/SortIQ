@@ -49,7 +49,7 @@ st.set_page_config(
     page_title="SortIQ — Smart Folder Organizer",
     page_icon="🧹",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 SANDBOX_DIR = ROOT / "sandbox"
@@ -459,6 +459,170 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+st.markdown(
+    """
+    <style>
+    [data-testid="stMainBlockContainer"] {
+        max-width: 1480px;
+        padding-top: 2rem;
+        padding-bottom: 4rem;
+    }
+
+    [data-testid="stAppViewContainer"], .stApp {
+        background: #f7f8fa !important;
+    }
+
+    [data-testid="stSidebar"] {
+        background: #ffffff !important;
+        border-right: 1px solid #e6e9ef !important;
+    }
+
+    h1, h2, h3, h4 {
+        color: #17212f !important;
+        letter-spacing: -0.035em !important;
+    }
+
+    h1 {
+        font-size: clamp(2rem, 3vw, 2.8rem) !important;
+        line-height: 1.08 !important;
+        margin-bottom: 0.35rem !important;
+    }
+
+    [data-testid="stCaptionContainer"], .stMarkdown p {
+        color: #687386;
+    }
+
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: #ffffff;
+        border: 1px solid #e3e8ef !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 16px rgba(27, 39, 55, 0.035);
+        padding: 1rem 1.15rem;
+    }
+
+    [data-testid="stMetric"] {
+        background: #ffffff;
+        border: 1px solid #e3e8ef;
+        border-radius: 14px;
+        padding: 0.9rem 1rem;
+    }
+
+    [data-testid="stMetricLabel"] p {
+        color: #687386 !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: #17212f !important;
+        font-size: 1.65rem !important;
+        font-weight: 650 !important;
+    }
+
+    .stButton > button {
+        min-height: 2.65rem !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        box-shadow: none !important;
+    }
+
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="stBaseButton-primary"] {
+        background: #176b58 !important;
+        border-color: #176b58 !important;
+    }
+
+    .stButton > button[kind="primary"]:hover,
+    .stButton > button[data-testid="stBaseButton-primary"]:hover {
+        background: #125746 !important;
+        border-color: #125746 !important;
+    }
+
+    .stTextInput input,
+    .stSelectbox div[data-baseweb="select"] {
+        border-radius: 10px !important;
+    }
+
+    [data-testid="stExpander"] {
+        background: #ffffff;
+        border: 1px solid #e3e8ef;
+        border-radius: 12px;
+    }
+
+    .workflow-step {
+        color: #176b58;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        margin-bottom: 0.25rem;
+    }
+
+    .workflow-title {
+        color: #17212f;
+        font-size: 1.35rem;
+        font-weight: 650;
+        letter-spacing: -0.025em;
+        margin: 0 0 0.2rem;
+    }
+
+    .workflow-help {
+        color: #687386;
+        font-size: 0.92rem;
+        margin: 0 0 0.8rem;
+    }
+
+    .voice-name {
+        color: #17212f;
+        font-size: 0.92rem;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .voice-sub {
+        color: #758094;
+    }
+
+    hr {
+        border-color: #e3e8ef !important;
+        margin: 1.25rem 0 !important;
+    }
+
+    .app-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border: 1px solid #d5e8e1;
+        border-radius: 999px;
+        background: #edf7f3;
+        color: #176b58;
+        font-size: 0.8rem;
+        font-weight: 650;
+        padding: 0.45rem 0.8rem;
+    }
+
+    .review-summary {
+        border-left: 4px solid #176b58;
+        border-radius: 10px;
+        background: #eef6f3;
+        color: #315d52;
+        padding: 0.75rem 1rem;
+    }
+
+    @media (max-width: 760px) {
+        [data-testid="stMainBlockContainer"] {
+            padding: 1rem 1rem 3rem;
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            padding: 0.8rem;
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 @st.cache_resource(show_spinner=False)
 def get_cached_model():
@@ -494,36 +658,51 @@ def ensure_sandbox_files() -> int:
         "discrete_mathematics_syllabus_2025.docx": "Discrete Mathematics and Graph Theory Syllabus for Spring 2025 Semester.",
         "operating_systems_exam_prep.pdf": "Operating Systems Study Guide: Virtual memory, paging, process synchronization semaphores.",
         "research_paper_transformer_attention.pdf": "Attention Is All You Need - Empirical evaluation of Transformer models in NLP.",
+        "database_systems_lab_report_normalization.pdf": "Database Systems Lab Report\nCourse: CS 312\nAssignment: Normalize the university enrollment schema to 3NF and document the functional dependencies.",
+        "statistics_midterm_review_chapter_6.docx": "Statistics II Midterm Review\nChapter 6: Confidence intervals, hypothesis testing, and interpreting p-values.",
 
         # Resume
         "alex_morgan_software_engineer_resume.pdf": "Alex Morgan\nSenior Software Engineer\nExperience: Python, PyTorch, Distributed Systems, Cloud Architecture.",
         "sarah_jenkins_cv_october_2025.pdf": "Sarah Jenkins - Curriculum Vitae\nProduct Designer & UX Researcher\nPortfolio and Case Studies.",
         "david_chen_frontend_developer_profile.docx": "David Chen - Lead React/TypeScript Frontend Developer Profile & Project Showcase.",
         "emily_clark_cover_letter_google.pdf": "Dear Hiring Manager,\nI am writing to express my enthusiastic interest in the ML Engineer role at Google.",
+        "maya_patel_product_manager_resume_2026.pdf": "Maya Patel\nProduct Manager\nExperience: roadmap planning, customer research, analytics, and cross-functional delivery.",
+        "robert_kim_backend_engineer_cv.docx": "Robert Kim\nBackend Engineer\nSkills: Java, Python, PostgreSQL, REST APIs, cloud deployment.",
+        "ux_researcher_portfolio_case_studies.pdf": "UX Research Portfolio\nSelected case studies covering usability testing, interview synthesis, and accessibility reviews.",
 
         # Receipt
         "amazon_order_tax_invoice_10928.pdf": "Amazon.com Tax Invoice\nOrder # 112-9847291-1029482\nItem: Wireless Ergonomic Keyboard\nTotal: $89.99\nPayment: Confirmed.",
         "starbucks_coffee_store_receipt.pdf": "Starbucks Store #4928\nGrande Caramel Macchiato - $5.75\nButter Croissant - $3.45\nTotal Paid: $9.20\nTax Invoice.",
         "aws_cloud_monthly_statement_oct2025.pdf": "Amazon Web Services Statement\nAccount: 9482-1029-4820\nUsage: EC2, S3, RDS compute charges\nTotal Amount Due: $142.50",
         "uber_trip_receipt_san_francisco.pdf": "Uber Trip Receipt\nTrip from Market St to SFO Airport\nFare: $44.20\nTip: $8.00\nTotal: $52.20\nPayment Method: Apple Pay",
+        "city_power_utility_bill_september_2026.pdf": "City Power Utilities\nBilling period: September 1-30, 2026\nElectricity: 284 kWh\nAmount due: $74.18\nDue date: October 20, 2026.",
+        "hotel_booking_confirmation_invoice.pdf": "Harborview Hotel\nStay: October 18-21, 2026\nRoom and taxes: $684.00\nReservation confirmed.",
+        "whole_foods_market_receipt_2026-10-12.pdf": "Whole Foods Market\nPurchase date: October 12, 2026\nGroceries and household items\nSubtotal: $63.42\nTotal paid: $68.19.",
 
         # Presentation
         "q3_product_growth_deck.pptx": "Q3 Product Growth Review Slides\nMonthly Active Users +34%\nRetention Cohort Analysis\nKey Roadmap Initiatives.",
         "ai_startup_pitch_presentation.pptx": "SortIQ Seed Round Pitch Deck\nProblem, Solution, Market Opportunity, Financial Projections, Founder Team.",
         "cybersecurity_seminar_keynote.pptx": "Keynote Presentation: Zero Trust Architecture in Modern Cloud Infrastructure.",
         "annual_shareholders_meeting_slides.pdf": "Annual General Meeting Slide Deck\nFinancial Performance, Governance, FY2026 Guidance.",
+        "customer_success_quarterly_business_review.pptx": "Customer Success Quarterly Business Review\nRenewal outlook, account health, support trends, and next-quarter priorities.",
+        "renewable_energy_project_proposal_deck.pptx": "Renewable Energy Project Proposal\nSite assessment, installation timeline, budget, and projected energy output.",
+        "engineering_team_sprint_review_slides.pptx": "Engineering Sprint Review\nCompleted stories, release notes, open risks, and the next sprint backlog.",
 
         # Image
         "golden_gate_bridge_sunset.jpg": "\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb" + "JPEG_IMAGE_DATA_SUNSET" * 50,
         "screenshot_2025_10_25_ui_bug.png": "\x89PNG\r\n\x1a\n" + "PNG_SCREENSHOT_DATA" * 50,
         "team_offsite_group_photo.jpeg": "\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb" + "JPEG_GROUP_PHOTO" * 50,
         "system_architecture_diagram.png": "\x89PNG\r\n\x1a\n" + "PNG_ARCHITECTURE_DIAGRAM" * 50,
+        "kitchen_renovation_before_after_photo.jpg": "\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb" + "JPEG_RENOVATION_PHOTO" * 50,
+        "product_dashboard_error_screenshot_2026-10-26.png": "\x89PNG\r\n\x1a\n" + "PNG_DASHBOARD_SCREENSHOT" * 50,
 
         # Other
         "docker_desktop_installer_v4.dmg": "DMG_BINARY_INSTALLER_PAYLOAD_MOCK_DATA" * 50,
         "python_environment_config.yaml": "name: sortiq-env\nchannels:\n  - conda-forge\ndependencies:\n  - python=3.11\n  - scikit-learn\n  - streamlit\n",
         "postgresql_backup_dump.sql": "CREATE TABLE users (id SERIAL PRIMARY KEY, name VARCHAR(255));\nINSERT INTO users VALUES (1, 'Alice');",
         "node_modules_cache_archive.zip": "PK\x03\x04" + "ZIP_ARCHIVE_MOCK_PAYLOAD" * 50,
+        "terraform_staging_environment_config.tf": "terraform {\n  required_version = \">= 1.6.0\"\n}\n\nresource \"aws_s3_bucket\" \"staging_artifacts\" {\n  bucket = \"sortiq-staging-artifacts\"\n}",
+        "application_server_error_log_2026-10-26.log": "2026-10-26T14:32:18Z INFO request_id=demo-1842 route=/api/files status=200 duration_ms=42\n2026-10-26T14:33:07Z WARN request_id=demo-1843 route=/api/predict status=503 retry=1",
     }
 
     created_count = 0
@@ -536,6 +715,13 @@ def ensure_sandbox_files() -> int:
                 file_path.write_bytes(content)
             created_count += 1
     return created_count
+
+
+def request_demo_folder_load() -> None:
+    """Prepare a scan of the demo folder on the next Streamlit rerun."""
+    ensure_sandbox_files()
+    st.session_state["scan_folder_input"] = str(SANDBOX_DIR.resolve())
+    st.session_state["demo_folder_load_requested"] = True
 
 
 def create_demo_folder() -> Path:
@@ -605,56 +791,73 @@ ensure_sandbox_files()
 model, model_error = get_cached_model()
 metrics = load_model_metrics()
 
-# Top Navigation Bar
-st.markdown(
-    """
-    <div class="top-nav">
-        <div class="top-nav-logo">
-            <span>SortIQ</span>
-            <span class="top-nav-tag">Editorial ML File Organizer</span>
-        </div>
-        <div style="font-size: 13px; color: #777169;">
-            Active Model: <strong style="color: #0c0a09;">TF-IDF + TruncatedSVD (100) + Logistic Regression</strong>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+# App header
+header_title, header_status = st.columns([3, 1], vertical_alignment="center")
+with header_title:
+    st.title("SortIQ")
+    st.caption("Review recommendations, then organize your files safely.")
+with header_status:
+    st.markdown(
+        '<div class="app-status-pill">● &nbsp;Private by design · Preview before moving</div>',
+        unsafe_allow_html=True,
+    )
 
 # Sidebar Configuration
 with st.sidebar:
-    st.markdown('<div class="top-nav-tag">System Parameters</div>', unsafe_allow_html=True)
-    st.markdown(
-        "<h3 style='font-family: \"EB Garamond\", serif; font-weight: 300; font-size: 24px; margin-top: 6px; color: #0c0a09;'>Model Architecture</h3>",
-        unsafe_allow_html=True,
-    )
+    st.header("Settings")
+    st.caption("Tune review and file-handling preferences.")
 
-    if model is not None and metrics:
-        sel_name = metrics.get("selected_model", "Selected Pipeline")
-        perf = metrics.get("models", {}).get(sel_name, {})
-        acc = perf.get("accuracy", 0.0)
-        f1 = perf.get("macro_f1", 0.0)
+    with st.expander("Model status & benchmark", expanded=False):
+        if model is not None and metrics:
+            sel_name = metrics.get("selected_model", "Selected Pipeline")
+            perf = metrics.get("models", {}).get(sel_name, {})
+            acc = perf.get("accuracy", 0.0)
+            f1 = perf.get("macro_f1", 0.0)
 
-        c1, c2 = st.columns(2)
-        with c1:
-            st.metric("Accuracy", f"{acc * 100:.1f}%")
-        with c2:
-            st.metric("Macro-F1", f"{f1 * 100:.1f}%")
-        st.caption(f"Pipeline: `{sel_name}`")
-    else:
-        st.warning("Model Not Found")
-        st.caption(f"{model_error}\nRun `python -m src.run_experiments` to train.")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.metric("Accuracy", f"{acc * 100:.1f}%")
+            with c2:
+                st.metric("Macro-F1", f"{f1 * 100:.1f}%")
+            st.caption(f"Pipeline: `{sel_name}`")
+        else:
+            st.warning("Model Not Found")
+            st.caption(f"{model_error}\nRun `python -m src.run_experiments` to train.")
 
-    st.markdown("---")
-    st.markdown(
-        "<h4 style='font-family: \"EB Garamond\", serif; font-weight: 300; font-size: 20px; color: #0c0a09;'>Safety & Collision</h4>",
-        unsafe_allow_html=True,
-    )
+        if metrics or DEFAULT_CONFUSION_MATRIX_PATH.is_file():
+            if metrics:
+                comp_data = [
+                    {
+                        "Model": m_name.replace("tfidf_", "").replace("_", " ").title(),
+                        "Accuracy": f"{m_data.get('accuracy', 0) * 100:.1f}%",
+                        "Macro-F1": f"{m_data.get('macro_f1', 0) * 100:.1f}%",
+                        "SVD": (
+                            str(m_data["svd_components"])
+                            if m_data.get("svd_components") is not None
+                            else "—"
+                        ),
+                    }
+                    for m_name, m_data in metrics.get("models", {}).items()
+                ]
+                st.dataframe(
+                    pd.DataFrame(comp_data),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            if DEFAULT_CONFUSION_MATRIX_PATH.is_file():
+                st.image(
+                    DEFAULT_CONFUSION_MATRIX_PATH,
+                    caption="Confusion matrix · selected model",
+                    use_container_width=True,
+                )
+
+    st.divider()
+    st.subheader("Review & safety")
     confidence_threshold = st.slider(
         "Ambiguity Review Threshold",
         min_value=0.40,
         max_value=0.95,
-        value=0.65,
+        value=0.75,
         step=0.05,
         help="Predictions below this confidence level are flagged for human review.",
     )
@@ -675,81 +878,23 @@ with st.sidebar:
         help="Excludes system dotfiles by default.",
     )
 
-    st.markdown("---")
-    st.markdown(
-        "<h4 style='font-family: \"EB Garamond\", serif; font-weight: 300; font-size: 20px; color: #0c0a09;'>Root Sandbox</h4>",
-        unsafe_allow_html=True,
-    )
-    st.caption("A disposable folder `sandbox/` with 25 test files for safe evaluation.")
-    if st.button("Reset Sandbox (25 Files)", use_container_width=True):
+    st.divider()
+    st.subheader("Safe demo")
+    st.caption("A disposable folder `sandbox/` with 40 realistic sample files for safe evaluation.")
+    if st.button("Refresh Demo Folder", use_container_width=True):
         count = ensure_sandbox_files()
         st.session_state["scan_folder_input"] = str(SANDBOX_DIR.resolve())
         st.session_state["scanned_files"] = scan_directory(SANDBOX_DIR.resolve(), recursive=False)
+        st.session_state["current_scan_path"] = str(SANDBOX_DIR.resolve())
         st.session_state["predictions"] = None
         st.success(f"Sandbox refreshed ({count} files).")
         st.rerun()
 
-    # Model Metrics & Confusion Matrix viewer (using embedded Base64 for guaranteed rendering)
-    if metrics or DEFAULT_CONFUSION_MATRIX_PATH.is_file():
-        with st.expander("📊 SVD Benchmark & Confusion Matrix", expanded=False):
-            if metrics:
-                st.markdown("<div style='font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.96px; color: #777169; margin-bottom: 8px;'>Candidate Holdout Comparison</div>", unsafe_allow_html=True)
-                comp_data = []
-                for m_name, m_data in metrics.get("models", {}).items():
-                    comp_data.append({
-                        "Model": m_name.replace("tfidf_", "").replace("_", " ").title(),
-                        "Accuracy": f"{m_data.get('accuracy', 0)*100:.1f}%",
-                        "Macro-F1": f"{m_data.get('macro_f1', 0)*100:.1f}%",
-                        "SVD Components": (
-                            str(m_data["svd_components"])
-                            if m_data.get("svd_components") is not None
-                            else "None"
-                        ),
-                        "Runtime": f"{m_data.get('runtime_seconds', 0):.4f}s",
-                    })
-                st.dataframe(pd.DataFrame(comp_data), use_container_width=True, hide_index=True)
-
-            if DEFAULT_CONFUSION_MATRIX_PATH.is_file():
-                img_data_uri = get_image_base64(DEFAULT_CONFUSION_MATRIX_PATH)
-                if img_data_uri:
-                    st.markdown(
-                        f"""
-                        <div style="text-align: center; margin-top: 14px;">
-                            <img src="{img_data_uri}" style="max-width: 100%; border-radius: 10px; border: 1px solid #e7e5e4;" />
-                            <div style="font-size: 11px; color: #777169; margin-top: 6px;">
-                                Confusion Matrix — Selected Model (TF-IDF + SVD + Logistic Regression)
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-
-# Atmospheric Hero Band
-st.markdown(
-    """
-    <div class="hero-band">
-        <div class="orb-lavender"></div>
-        <div class="orb-peach"></div>
-        <div class="orb-mint"></div>
-        <div class="orb-sky"></div>
-        <div class="hero-inner">
-            <span class="top-nav-tag">Machine Learning Organization</span>
-            <h1 class="hero-h1">Quietly organized.<br>Precisely categorized.</h1>
-            <p class="hero-p">
-                SortIQ tokenizes filenames, applies TF-IDF with TruncatedSVD dimensionality reduction,
-                and routes downloads into organized categories with guaranteed dry-run preview and explicit confirmation.
-            </p>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
 # Step 1: Directory Selection & Scan
-st.markdown('<div class="editorial-h2">1. Directory Selection & Inspection</div>', unsafe_allow_html=True)
+st.markdown('<div class="workflow-step">Step 1 · Choose a folder</div>', unsafe_allow_html=True)
+st.markdown('<div class="workflow-title">Where should SortIQ look?</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="editorial-sub">Choose a target directory to scan. Scanning is strictly read-only and never modifies or deletes files.</div>',
+    '<div class="workflow-help">Only direct files are scanned. Nothing is changed during scanning or prediction.</div>',
     unsafe_allow_html=True,
 )
 
@@ -758,32 +903,49 @@ default_scan_dir = st.session_state.get(
     str(SANDBOX_DIR.resolve()) if SANDBOX_DIR.exists() else str(Path.home() / "Downloads"),
 )
 
-input_col, btn_sandbox_col, btn_scan_col = st.columns([3.5, 1.4, 1.2])
+with st.container(border=True):
+    input_col, btn_sandbox_col, btn_scan_col = st.columns([5, 1.5, 1.5], vertical_alignment="bottom")
 
-with input_col:
-    folder_input = st.text_input(
-        "Directory Path:",
-        value=default_scan_dir,
-        placeholder="Enter path (e.g., /path/to/sandbox or ~/Downloads)",
-        label_visibility="collapsed",
-    )
+    with input_col:
+        folder_input = st.text_input(
+            "Folder path",
+            value=default_scan_dir,
+            placeholder="Paste or type a folder path",
+            key="scan_folder_input",
+        )
 
-with btn_sandbox_col:
-    if st.button("📂 Use Sandbox", use_container_width=True, help="Load root sandbox with 25 test files"):
-        ensure_sandbox_files()
-        st.session_state["scan_folder_input"] = str(SANDBOX_DIR.resolve())
-        st.rerun()
+    with btn_sandbox_col:
+        current_scan_path = st.session_state.get("current_scan_path")
+        demo_folder_loaded = (
+            bool(st.session_state.get("scanned_files"))
+            and current_scan_path is not None
+            and Path(current_scan_path).resolve() == SANDBOX_DIR.resolve()
+        )
+        st.button(
+            "Demo folder loaded ✓" if demo_folder_loaded else "Use demo folder",
+            use_container_width=True,
+            help="Load the bundled sandbox with sample files.",
+            disabled=demo_folder_loaded,
+            on_click=request_demo_folder_load,
+        )
 
-with btn_scan_col:
-    scan_button = st.button("Scan Folder", use_container_width=True, type="primary")
+    with btn_scan_col:
+        scan_button = st.button(
+            "Scan folder",
+            use_container_width=True,
+            type="primary",
+        )
 
 # Execute scan
-if scan_button or "scanned_files" not in st.session_state:
+demo_folder_load_requested = st.session_state.pop("demo_folder_load_requested", False)
+initial_scan = "scanned_files" not in st.session_state
+if scan_button or demo_folder_load_requested or initial_scan:
     is_valid, err_msg = validate_directory_path(folder_input)
     if not is_valid:
         st.error(f"Directory Error: {err_msg}")
         st.session_state["scanned_files"] = []
     else:
+        scan_succeeded = False
         try:
             scanned = scan_directory(
                 folder_input,
@@ -793,72 +955,32 @@ if scan_button or "scanned_files" not in st.session_state:
             st.session_state["scanned_files"] = scanned
             st.session_state["current_scan_path"] = str(Path(folder_input).expanduser().resolve())
             st.session_state["predictions"] = None
+            scan_succeeded = True
         except Exception as exc:
             st.error(f"Scan operation failed: {exc}")
             st.session_state["scanned_files"] = []
+        if scan_succeeded:
+            st.rerun()
 
 scanned_files = st.session_state.get("scanned_files", [])
 current_path = st.session_state.get("current_scan_path", folder_input)
 
 if not scanned_files:
-    st.info("No files found in this directory. Click 'Use Sandbox' above to inspect the 25 sample files.")
+    st.info("No files found here. Choose another folder or use the demo folder.")
 else:
     total_size = sum(f.size_bytes for f in scanned_files)
     unique_exts = len({f.extension for f in scanned_files if f.extension})
 
-    # Metric Strip
-    s1, s2, s3, s4 = st.columns(4)
-    with s1:
-        st.markdown(
-            f"""
-            <div class="stat-tile">
-                <div class="stat-label">Files Discovered</div>
-                <div class="stat-number">{len(scanned_files)}</div>
-                <div class="stat-desc">Direct files in root folder</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with s2:
-        st.markdown(
-            f"""
-            <div class="stat-tile">
-                <div class="stat-label">Total Volume</div>
-                <div class="stat-number">{format_file_size(total_size)}</div>
-                <div class="stat-desc">Cumulative byte size</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with s3:
-        st.markdown(
-            f"""
-            <div class="stat-tile">
-                <div class="stat-label">File Extensions</div>
-                <div class="stat-number">{unique_exts}</div>
-                <div class="stat-desc">Unique formats identified</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with s4:
-        st.markdown(
-            """
-            <div class="stat-tile">
-                <div class="stat-label">Integrity Protocol</div>
-                <div class="stat-number" style="font-size: 26px; padding-top: 4px;">Read-Only</div>
-                <div class="stat-desc">Zero filesystem mutations</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    stat_files, stat_size, stat_extensions = st.columns(3)
+    stat_files.metric("Files found", len(scanned_files))
+    stat_size.metric("Total size", format_file_size(total_size))
+    stat_extensions.metric("File types", unique_exts)
 
     # Step 2: Prediction & Interactive Review Table
-    st.markdown('<div class="editorial-h2">2. Category Predictions & Interactive Review</div>', unsafe_allow_html=True)
+    st.markdown('<div class="workflow-step">Step 2 · Review</div>', unsafe_allow_html=True)
+    st.markdown('<div class="workflow-title">Check the recommendations</div>', unsafe_allow_html=True)
     st.markdown(
-        f'<div class="editorial-sub">SortIQ classifies each file into 6 categories. '
-        f'Predictions below {int(confidence_threshold*100)}% are highlighted as ambiguous. '
-        f'Review only low-confidence predictions, then confirm which files to move.</div>',
+        f'<div class="workflow-help">Only predictions below {int(confidence_threshold * 100)}% need a category decision. Confident predictions are ready as-is.</div>',
         unsafe_allow_html=True,
     )
 
@@ -895,14 +1017,26 @@ else:
         confidence_threshold,
     )
 
-    # Filter selector
-    filter_options = ["All Files", f"⚠️ Ambiguous ({ambiguous_count})"] + [c.capitalize() for c in category_list]
-    active_filter = st.selectbox(
-        "Filter View:",
-        options=filter_options,
-        index=0,
-        label_visibility="collapsed",
-    )
+    with st.container(border=True):
+        st.markdown(
+            '<div class="workflow-title" style="font-size: 1.05rem;">File list</div>',
+            unsafe_allow_html=True,
+        )
+        st.caption(
+            f"{ambiguous_count} file(s) need review · "
+            f"{len(scanned_files) - ambiguous_count} confident prediction(s)"
+        )
+
+        # Filter selector
+        ambiguous_filter = f"Needs review ({ambiguous_count})"
+        filter_options = ["All files", ambiguous_filter] + [
+            category.capitalize() for category in category_list
+        ]
+        active_filter = st.selectbox(
+            "Show",
+            options=filter_options,
+            index=0,
+        )
 
     # Filtered subset of scanned files
     visible_files = []
@@ -911,9 +1045,9 @@ else:
         pred_cat = pred_item["predicted_category"]
         conf = float(pred_item.get("confidence", 0.5))
 
-        if active_filter == "All Files":
+        if active_filter == "All files":
             visible_files.append(f)
-        elif active_filter.startswith("⚠️ Ambiguous"):
+        elif active_filter == ambiguous_filter:
             if conf < confidence_threshold:
                 visible_files.append(f)
         else:
@@ -921,7 +1055,7 @@ else:
                 visible_files.append(f)
 
     # Bulk actions
-    b_col1, b_col2, b_col3 = st.columns([1.2, 1.2, 5])
+    b_col1, b_col2, _ = st.columns([1.2, 1.2, 5])
     with b_col1:
         if st.button("Select All", use_container_width=True):
             for f in visible_files:
@@ -933,9 +1067,8 @@ else:
                 st.session_state["selected_files"][f.file_name] = False
             st.rerun()
 
-    # Editorial Voice-Row Card Deck
+    # File review cards
     reviewed_items = []
-    st.markdown('<div class="voice-deck">', unsafe_allow_html=True)
 
     for index, file_info in enumerate(visible_files):
         fname = file_info.file_name
@@ -955,123 +1088,123 @@ else:
             st.session_state["user_overrides"],
         )
 
-        row_col1, row_col2, row_col3, row_col4 = st.columns([0.4, 4.4, 2.4, 2.8])
-
-        with row_col1:
-            checked = st.checkbox(
-                f"Select {fname}",
-                value=is_selected,
-                key=f"sel_{fname}",
-                label_visibility="collapsed",
-            )
-            st.session_state["selected_files"][fname] = checked
-
-        with row_col2:
-            icon = CATEGORY_ICONS.get(current_cat, "📁")
-            st.markdown(
-                f"""
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div class="voice-icon pill-{current_cat}">{icon}</div>
-                    <div class="voice-meta">
-                        <div class="voice-name" title="{fname}">{fname}</div>
-                        <div class="voice-sub">{file_info.size_formatted} · {file_info.extension.upper() or 'FILE'} · Modified {file_info.modified_str}</div>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+        with st.container(border=True):
+            row_col1, row_col2, row_col3 = st.columns(
+                [0.35, 3.8, 3.2],
+                vertical_alignment="center",
             )
 
-        with row_col3:
-            is_ambiguous = conf < confidence_threshold
-            conf_badge = (
-                f"<span class='status-ambiguous'>⚠️ {conf*100:.0f}% Review</span>"
-                if is_ambiguous
-                else f"<span class='status-confident'>✓ {conf*100:.0f}%</span>"
-            )
-            cat_badge = f"<span class='pill-badge pill-{predicted_cat}'>{predicted_cat.capitalize()}</span>"
-            st.markdown(f"{cat_badge} {conf_badge}", unsafe_allow_html=True)
-
-        with row_col4:
-            if is_ambiguous:
-                cat_idx = category_list.index(current_cat) if current_cat in category_list else 0
-                new_cat = st.selectbox(
-                    f"Review category for {fname}",
-                    options=category_list,
-                    index=cat_idx,
-                    key=f"cat_{fname}",
+            with row_col1:
+                checked = st.checkbox(
+                    f"Select {fname}",
+                    value=is_selected,
+                    key=f"sel_{fname}",
                     label_visibility="collapsed",
                 )
-                if new_cat != current_cat:
-                    st.session_state["user_overrides"][fname] = new_cat
-                    st.rerun()
-            else:
-                new_cat = predicted_cat
-                st.caption("No review needed")
+                st.session_state["selected_files"][fname] = checked
 
-            dest_folder = get_destination_folder(new_cat)
-            st.caption(f"Destination: `{dest_folder}/`")
+            with row_col2:
+                st.markdown(f"**{fname}**")
+                st.caption(
+                    f"{file_info.extension.upper() or 'FILE'} · "
+                    f"{file_info.size_formatted} · Modified {file_info.modified_str}"
+                )
 
-        st.markdown("<div style='border-bottom: 1px solid #f0efed; margin: 2px 0 8px 0;'></div>", unsafe_allow_html=True)
+            with row_col3:
+                is_ambiguous = conf < confidence_threshold
+                conf_badge = (
+                    f"<span class='status-ambiguous'>Needs review · {conf * 100:.0f}%</span>"
+                    if is_ambiguous
+                    else f"<span class='status-confident'>Confident · {conf * 100:.0f}%</span>"
+                )
+                cat_badge = (
+                    f"<span class='pill-badge pill-{predicted_cat}'>"
+                    f"{predicted_cat.capitalize()}</span>"
+                )
+                st.markdown(f"{cat_badge} {conf_badge}", unsafe_allow_html=True)
 
-        if checked:
-            reviewed_items.append({
-                "file_name": fname,
-                "source_path": file_info.full_path,
-                "category": new_cat,
-            })
+                if is_ambiguous:
+                    cat_idx = (
+                        category_list.index(current_cat)
+                        if current_cat in category_list
+                        else 0
+                    )
+                    new_cat = st.selectbox(
+                        f"Review category for {fname}",
+                        options=category_list,
+                        index=cat_idx,
+                        key=f"cat_{fname}",
+                        label_visibility="collapsed",
+                    )
+                    if new_cat != current_cat:
+                        st.session_state["user_overrides"][fname] = new_cat
+                        st.rerun()
+                else:
+                    new_cat = predicted_cat
 
-    st.markdown('</div>', unsafe_allow_html=True)
+                dest_folder = get_destination_folder(new_cat)
+                st.caption(f"Destination: {dest_folder}/")
+
+            if checked:
+                reviewed_items.append(
+                    {
+                        "file_name": fname,
+                        "source_path": file_info.full_path,
+                        "category": new_cat,
+                    }
+                )
 
     # Active learning submission banner
     if pending_corrections:
-        fb_col1, fb_col2 = st.columns([4, 1.5])
-        with fb_col1:
-            st.markdown(
-                f"""
-                <div style="background: #ffffff; border: 1px solid #e7e5e4; border-left: 3px solid #292524; border-radius: 12px; padding: 14px 18px;">
-                    <div style="font-weight: 500; font-size: 13.5px; color: #0c0a09;">
-                        Active Learning Feedback ({len(pending_corrections)} correction{'s' if len(pending_corrections) > 1 else ''} pending)
-                    </div>
-                    <div style="font-size: 12.5px; color: #777169; margin-top: 2px;">
-                        Confirmed corrections are saved locally. The pipeline retrains automatically after every 5 confirmed corrections.
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with fb_col2:
-            if st.button("💾 Save Ambiguous Corrections", use_container_width=True, type="secondary"):
-                retrained_any = False
-                recorded_count = 0
-                for fname, new_cat in pending_corrections.items():
-                    try:
-                        res = record_correction(fname, new_cat)
-                    except Exception as feedback_error:
-                        st.error(f"Could not save correction for {fname}: {feedback_error}")
-                        continue
-                    st.session_state["submitted_feedback"][fname] = new_cat
-                    recorded_count += 1
-                    if res.get("retrained"):
-                        retrained_any = True
-                if recorded_count:
-                    st.success(
-                        f"Saved {recorded_count} confirmed ambiguous correction(s)."
-                    )
-                if retrained_any:
-                    st.balloons()
-                    st.success("🎉 Threshold reached: Model automatically retrained and reloaded!")
-                    st.cache_resource.clear()
-                    st.rerun()
+        with st.container(border=True):
+            feedback_col, save_col = st.columns([4, 1.5], vertical_alignment="center")
+            with feedback_col:
+                st.markdown(
+                    f"**Active learning · {len(pending_corrections)} correction"
+                    f"{'s' if len(pending_corrections) != 1 else ''} pending**"
+                )
+                st.caption(
+                    "Confirmed corrections are saved locally. The pipeline retrains "
+                    "automatically after every 5 confirmed corrections."
+                )
+            with save_col:
+                if st.button(
+                    "💾 Save Ambiguous Corrections",
+                    use_container_width=True,
+                    type="secondary",
+                ):
+                    retrained_any = False
+                    recorded_count = 0
+                    for fname, new_cat in pending_corrections.items():
+                        try:
+                            res = record_correction(fname, new_cat)
+                        except Exception as feedback_error:
+                            st.error(f"Could not save correction for {fname}: {feedback_error}")
+                            continue
+                        st.session_state["submitted_feedback"][fname] = new_cat
+                        recorded_count += 1
+                        if res.get("retrained"):
+                            retrained_any = True
+                    if recorded_count:
+                        st.success(
+                            f"Saved {recorded_count} confirmed ambiguous correction(s)."
+                        )
+                    if retrained_any:
+                        st.balloons()
+                        st.success("🎉 Threshold reached: Model automatically retrained and reloaded!")
+                        st.cache_resource.clear()
+                        st.rerun()
 
     # Step 3: Safe Dry-Run Simulation
-    st.markdown('<div class="editorial-h2">3. Safe Dry-Run Simulation</div>', unsafe_allow_html=True)
+    st.markdown('<div class="workflow-step">Step 3 · Preview</div>', unsafe_allow_html=True)
+    st.markdown('<div class="workflow-title">Review the move plan</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="editorial-sub">The dry-run engine checks destination collisions and prepares the organization ledger. No files move yet.</div>',
+        '<div class="workflow-help">Nothing moves in this step. Check each destination and any collision handling below.</div>',
         unsafe_allow_html=True,
     )
 
     if not reviewed_items:
-        st.warning("No files are currently selected for organization. Check the selection box next to files above.")
+        st.info("Select at least one file above to build a move preview.")
     else:
         plan = plan_organization(
             items=reviewed_items,
@@ -1084,52 +1217,17 @@ else:
         skip_count = sum(1 for p in plan if p.status == "skip")
         error_count = sum(1 for p in plan if p.status == "error")
 
-        # Dry-run stats
-        d1, d2, d3, d4 = st.columns(4)
-        with d1:
-            st.markdown(
-                f"""
-                <div class="stat-tile">
-                    <div class="stat-label">Ready to Move</div>
-                    <div class="stat-number">{ready_count}</div>
-                    <div class="stat-desc">Direct relocation</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with d2:
-            st.markdown(
-                f"""
-                <div class="stat-tile">
-                    <div class="stat-label">Auto-Renamed</div>
-                    <div class="stat-number">{rename_count}</div>
-                    <div class="stat-desc">Collision safeguard</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with d3:
-            st.markdown(
-                f"""
-                <div class="stat-tile">
-                    <div class="stat-label">Skipped</div>
-                    <div class="stat-number">{skip_count}</div>
-                    <div class="stat-desc">Per collision policy</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with d4:
-            st.markdown(
-                f"""
-                <div class="stat-tile">
-                    <div class="stat-label">Validation Errors</div>
-                    <div class="stat-number">{error_count}</div>
-                    <div class="stat-desc">Issues detected</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+        ready_metric, rename_metric, skipped_metric, errors_metric = st.columns(4)
+        ready_metric.metric("Ready to move", ready_count)
+        rename_metric.metric("Will be renamed", rename_count)
+        skipped_metric.metric("Will be skipped", skip_count)
+        errors_metric.metric("Needs attention", error_count)
+
+        st.markdown("#### Move preview")
+        st.caption(
+            f"Destination root: `{current_path}` · "
+            f"Collision policy: {'rename' if collision_policy == COLLISION_RENAME else 'skip'}"
+        )
 
         # Dry-Run Movement Ledger
         ledger_rows = []
@@ -1161,20 +1259,10 @@ else:
         )
 
         # Step 4: Explicit Confirmation & Execution
-        st.markdown('<div class="editorial-h2">4. Explicit Authorization & Execution</div>', unsafe_allow_html=True)
-
+        st.markdown('<div class="workflow-step">Step 4 · Confirm</div>', unsafe_allow_html=True)
+        st.markdown('<div class="workflow-title">Nothing moves until you approve</div>', unsafe_allow_html=True)
         st.markdown(
-            """
-            <div style="background: #ffffff; border: 1px solid #e7e5e4; border-left: 3px solid #292524; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px;">
-                <div style="font-weight: 500; font-size: 14px; color: #0c0a09; margin-bottom: 4px;">
-                    Safety Invariant & Confirmation Protocol
-                </div>
-                <div style="font-size: 13px; color: #4e4e4e;">
-                    Selected files will be relocated into dedicated category folders within the specified root directory.
-                    Silent overwriting is strictly prevented. Files will never be deleted.
-                </div>
-            </div>
-            """,
+            '<div class="workflow-help">Files are never deleted or silently overwritten. Changing the preview resets your confirmation.</div>',
             unsafe_allow_html=True,
         )
 

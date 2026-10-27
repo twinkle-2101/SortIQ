@@ -22,6 +22,7 @@ class AppHelperTests(unittest.TestCase):
             for slider in app.slider
             if slider.label == "Ambiguity Review Threshold"
         )
+        self.assertEqual(threshold, 0.75)
         ambiguous_files = {
             file_name
             for file_name, prediction in predictions.items()
@@ -100,6 +101,34 @@ class AppHelperTests(unittest.TestCase):
         scanned = scan_directory(demo_path)
         self.assertGreaterEqual(len(scanned), 10)
 
+    def test_demo_folder_button_loads_and_reports_loaded(self):
+        app_path = Path(__file__).resolve().parents[1] / "app.py"
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            Path(temporary_directory, "meeting_agenda.docx").write_text(
+                "Project meeting agenda", encoding="utf-8"
+            )
+            app = AppTest.from_file(str(app_path), default_timeout=30).run()
+            folder_input = next(
+                item for item in app.text_input if item.label == "Folder path"
+            )
+            folder_input.set_value(temporary_directory)
+            next(button for button in app.button if button.label == "Scan folder").click().run()
+
+            self.assertEqual(
+                app.session_state["current_scan_path"],
+                str(Path(temporary_directory).resolve()),
+            )
+            next(button for button in app.button if button.label == "Use demo folder").click().run()
+
+            self.assertEqual(
+                app.session_state["current_scan_path"],
+                str((Path(__file__).resolve().parents[1] / "sandbox").resolve()),
+            )
+            self.assertGreaterEqual(len(app.session_state["scanned_files"]), 40)
+            self.assertTrue(
+                any(button.label == "Demo folder loaded ✓" for button in app.button)
+            )
+
     def test_load_model_metrics(self):
         metrics = load_model_metrics()
         self.assertIsNotNone(metrics)
@@ -113,7 +142,7 @@ class AppHelperTests(unittest.TestCase):
         self.assertTrue(sandbox_path.is_dir())
         count = ensure_sandbox_files()
         scanned = scan_directory(sandbox_path)
-        self.assertGreaterEqual(len(scanned), 20)
+        self.assertGreaterEqual(len(scanned), 40)
 
 
 if __name__ == "__main__":

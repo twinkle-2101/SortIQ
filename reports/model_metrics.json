@@ -434,7 +434,7 @@
           "predicted_category": "receipt"
         }
       ],
-      "runtime_seconds": 0.02269,
+      "runtime_seconds": 0.636899,
       "train_rows": 960,
       "test_rows": 240,
       "svd_components": null
@@ -733,7 +733,7 @@
           "predicted_category": "receipt"
         }
       ],
-      "runtime_seconds": 0.064827,
+      "runtime_seconds": 1.638662,
       "train_rows": 960,
       "test_rows": 240,
       "svd_components": null
@@ -1017,7 +1017,7 @@
           "predicted_category": "receipt"
         }
       ],
-      "runtime_seconds": 0.472729,
+      "runtime_seconds": 1.532379,
       "train_rows": 960,
       "test_rows": 240,
       "svd_components": 100
@@ -1025,10 +1025,10 @@
   },
   "selected_model": "tfidf_svd_logistic_regression",
   "feedback": {
-    "used": false,
-    "correction_count": 0,
-    "event_count": 0,
-    "final_training_rows": 1200,
+    "used": true,
+    "correction_count": 5,
+    "event_count": 5,
+    "final_training_rows": 1205,
     "retraining": "Automatic after the configured correction threshold when a feedback file is supplied."
   }
 }
