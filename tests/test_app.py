@@ -6,8 +6,14 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
-from app import create_demo_folder, load_model_metrics, rule_based_fallback_predict
+from app import (
+    create_demo_folder,
+    create_fresh_demo_folder,
+    load_model_metrics,
+    rule_based_fallback_predict,
+)
 from src.file_scanner import scan_directory
+from src.organizer import plan_organization
 
 
 class AppHelperTests(unittest.TestCase):
@@ -122,12 +128,92 @@ class AppHelperTests(unittest.TestCase):
 
             self.assertEqual(
                 app.session_state["current_scan_path"],
-                str((Path(__file__).resolve().parents[1] / "sandbox").resolve()),
+                app.session_state["demo_folder_path"],
             )
             self.assertGreaterEqual(len(app.session_state["scanned_files"]), 40)
             self.assertTrue(
                 any(button.label == "Demo folder loaded ✓" for button in app.button)
             )
+
+    def test_each_fresh_demo_run_has_a_clean_and_consistent_preview(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            demo_parent = Path(temporary_directory)
+            first_run = create_fresh_demo_folder(demo_parent)
+            second_run = create_fresh_demo_folder(demo_parent)
+
+            first_files = scan_directory(first_run)
+            second_files = scan_directory(second_run)
+            self.assertEqual(
+                {file_info.file_name for file_info in first_files},
+                {file_info.file_name for file_info in second_files},
+            )
+            self.assertEqual(len(first_files), 40)
+            for run_dir, files in (
+                (first_run, first_files),
+                (second_run, second_files),
+            ):
+                plan = plan_organization(
+                    [
+                        {
+                            "file_name": file_info.file_name,
+                            "source_path": file_info.full_path,
+                            "category": "other",
+                        }
+                        for file_info in files
+                    ],
+                    destination_root=run_dir,
+                )
+                self.assertEqual(len(plan), 40)
+                self.assertTrue(all(item.status == "ready" for item in plan))
+
+    def test_review_only_allows_renaming_when_destination_collides(self):
+        app_path = Path(__file__).resolve().parents[1] / "app.py"
+        filename = "team_meeting_agenda.docx"
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            Path(temporary_directory, filename).write_text(
+                "Agenda for the project team", encoding="utf-8"
+            )
+            app = AppTest.from_file(str(app_path), default_timeout=30).run()
+            next(
+                item for item in app.text_input if item.label == "Folder path"
+            ).set_value(temporary_directory)
+            next(button for button in app.button if button.label == "Scan folder").click().run()
+            name_input_key = f"destination_name_{filename}"
+            self.assertFalse(any(item.key == name_input_key for item in app.text_input))
+
+            prediction = app.session_state["predictions"][filename]
+            destination_folder = {
+                "academic": "Academic",
+                "resume": "Resumes",
+                "receipt": "Receipts",
+                "presentation": "Presentations",
+                "image": "Images",
+                "other": "Other",
+            }[prediction["predicted_category"]]
+            destination_directory = Path(temporary_directory, destination_folder)
+            destination_directory.mkdir()
+            (destination_directory / filename).write_text(
+                "Existing destination file", encoding="utf-8"
+            )
+            next(button for button in app.button if button.label == "Scan folder").click().run()
+
+            name_input = next(
+                item
+                for item in app.text_input
+                if item.key == name_input_key
+            )
+            name_input.set_value("project_team_agenda.docx").run()
+
+            ledger = next(
+                table.value
+                for table in app.dataframe
+                if "Destination Path" in table.value.columns
+            )
+            self.assertIn(
+                str(Path("Other") / "project_team_agenda.docx"),
+                ledger["Destination Path"].tolist(),
+            )
+            self.assertTrue(Path(temporary_directory, filename).is_file())
 
     def test_load_model_metrics(self):
         metrics = load_model_metrics()

@@ -50,6 +50,6 @@ The app will launch at `http://localhost:8501`.
 ### Disposable Demo Sandbox
 
 SortIQ includes a built-in sandbox for demonstration purposes:
-- Click **"Use demo folder"** to load the repository's `sandbox/` folder; the button changes to **"Demo folder loaded"** once its files are scanned.
-- The sandbox is populated with 40 realistic sample files across the categories. Use **"Refresh Demo Folder"** in the sidebar to restore missing samples.
+- Click **"Use demo folder"** or **"Start a fresh demo run"** to start with a clean copy of 40 sample files in a temporary workspace. Each run uses empty destination folders, so its preview is not affected by earlier demo moves.
+- A **"Rename destination file"** field appears only when a file's destination already exists. The source remains untouched until you confirm the move; leaving the name unchanged retains the automatic collision safeguard.
 - You can test the entire scan, predict, override, dry-run, and organize workflow safely without touching your real Downloads folder.

@@ -12,6 +12,7 @@ import base64
 import json
 import os
 import shutil
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -648,6 +649,18 @@ def get_sandbox_path() -> Path:
     return SANDBOX_DIR
 
 
+def create_fresh_demo_folder(base_dir: Path | None = None) -> Path:
+    """Create an isolated demo run so prior moves cannot affect its preview."""
+    ensure_sandbox_files()
+    demo_parent = base_dir or (Path(tempfile.gettempdir()) / "sortiq-demo-runs")
+    demo_parent.mkdir(parents=True, exist_ok=True)
+    run_dir = Path(tempfile.mkdtemp(prefix="run-", dir=demo_parent))
+    for source_file in SANDBOX_DIR.iterdir():
+        if source_file.is_file():
+            shutil.copy2(source_file, run_dir / source_file.name)
+    return run_dir
+
+
 def ensure_sandbox_files() -> int:
     """Ensure the root sandbox directory contains realistic dummy files for testing."""
     SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
@@ -718,10 +731,14 @@ def ensure_sandbox_files() -> int:
 
 
 def request_demo_folder_load() -> None:
-    """Prepare a scan of the demo folder on the next Streamlit rerun."""
-    ensure_sandbox_files()
-    st.session_state["scan_folder_input"] = str(SANDBOX_DIR.resolve())
+    """Prepare a fresh, isolated demo scan on the next Streamlit rerun."""
+    for file_info in st.session_state.get("scanned_files", []):
+        st.session_state.pop(f"destination_name_{file_info.file_name}", None)
+    demo_folder = create_fresh_demo_folder()
+    st.session_state["demo_folder_path"] = str(demo_folder.resolve())
+    st.session_state["scan_folder_input"] = str(demo_folder.resolve())
     st.session_state["demo_folder_load_requested"] = True
+    st.session_state["user_overrides"] = {}
 
 
 def create_demo_folder() -> Path:
@@ -784,8 +801,11 @@ def rule_based_fallback_predict(file_names: list[str]) -> list[dict[str, Any]]:
     return results
 
 
-# Ensure sandbox is ready on first launch
+# Keep the sample library ready, and give each app session a clean demo workspace.
 ensure_sandbox_files()
+if "demo_folder_path" not in st.session_state:
+    initial_demo_folder = create_fresh_demo_folder()
+    st.session_state["demo_folder_path"] = str(initial_demo_folder.resolve())
 
 # Load model & metrics
 model, model_error = get_cached_model()
@@ -880,14 +900,9 @@ with st.sidebar:
 
     st.divider()
     st.subheader("Safe demo")
-    st.caption("A disposable folder `sandbox/` with 40 realistic sample files for safe evaluation.")
-    if st.button("Refresh Demo Folder", use_container_width=True):
-        count = ensure_sandbox_files()
-        st.session_state["scan_folder_input"] = str(SANDBOX_DIR.resolve())
-        st.session_state["scanned_files"] = scan_directory(SANDBOX_DIR.resolve(), recursive=False)
-        st.session_state["current_scan_path"] = str(SANDBOX_DIR.resolve())
-        st.session_state["predictions"] = None
-        st.success(f"Sandbox refreshed ({count} files).")
+    st.caption("Each demo run starts with 40 sample files and an empty set of destination folders.")
+    if st.button("Start a fresh demo run", use_container_width=True):
+        request_demo_folder_load()
         st.rerun()
 
 # Step 1: Directory Selection & Scan
@@ -900,7 +915,7 @@ st.markdown(
 
 default_scan_dir = st.session_state.get(
     "scan_folder_input",
-    str(SANDBOX_DIR.resolve()) if SANDBOX_DIR.exists() else str(Path.home() / "Downloads"),
+    st.session_state["demo_folder_path"],
 )
 
 with st.container(border=True):
@@ -916,15 +931,17 @@ with st.container(border=True):
 
     with btn_sandbox_col:
         current_scan_path = st.session_state.get("current_scan_path")
+        demo_folder_path = st.session_state.get("demo_folder_path")
         demo_folder_loaded = (
-            bool(st.session_state.get("scanned_files"))
+            "scanned_files" in st.session_state
             and current_scan_path is not None
-            and Path(current_scan_path).resolve() == SANDBOX_DIR.resolve()
+            and demo_folder_path is not None
+            and Path(current_scan_path).resolve() == Path(demo_folder_path).resolve()
         )
         st.button(
             "Demo folder loaded ✓" if demo_folder_loaded else "Use demo folder",
             use_container_width=True,
-            help="Load the bundled sandbox with sample files.",
+            help="Start a clean demo run with a fresh copy of the sample files.",
             disabled=demo_folder_loaded,
             on_click=request_demo_folder_load,
         )
@@ -955,6 +972,10 @@ if scan_button or demo_folder_load_requested or initial_scan:
             st.session_state["scanned_files"] = scanned
             st.session_state["current_scan_path"] = str(Path(folder_input).expanduser().resolve())
             st.session_state["predictions"] = None
+            if demo_folder_load_requested:
+                st.session_state["selected_files"] = {
+                    file_info.file_name: True for file_info in scanned
+                }
             scan_succeeded = True
         except Exception as exc:
             st.error(f"Scan operation failed: {exc}")
@@ -1087,6 +1108,12 @@ else:
             confidence_threshold,
             st.session_state["user_overrides"],
         )
+        destination_folder = get_destination_folder(current_cat)
+        intended_destination = Path(current_path) / destination_folder / fname
+        has_destination_collision = (
+            intended_destination.exists()
+            and intended_destination.resolve() != Path(file_info.full_path).resolve()
+        )
 
         with st.container(border=True):
             row_col1, row_col2, row_col3 = st.columns(
@@ -1109,6 +1136,18 @@ else:
                     f"{file_info.extension.upper() or 'FILE'} · "
                     f"{file_info.size_formatted} · Modified {file_info.modified_str}"
                 )
+                destination_name_key = f"destination_name_{fname}"
+                if has_destination_collision:
+                    if destination_name_key not in st.session_state:
+                        st.session_state[destination_name_key] = fname
+                    destination_name = st.text_input(
+                        "Rename destination file",
+                        key=destination_name_key,
+                        help="This destination filename already exists. Choose another name or keep it to use automatic collision handling.",
+                    )
+                else:
+                    st.session_state.pop(destination_name_key, None)
+                    destination_name = fname
 
             with row_col3:
                 is_ambiguous = conf < confidence_threshold
@@ -1143,12 +1182,14 @@ else:
                     new_cat = predicted_cat
 
                 dest_folder = get_destination_folder(new_cat)
-                st.caption(f"Destination: {dest_folder}/")
+                st.caption(
+                    f"Destination: {dest_folder}/{destination_name or '(enter a filename)'}"
+                )
 
             if checked:
                 reviewed_items.append(
                     {
-                        "file_name": fname,
+                        "file_name": destination_name,
                         "source_path": file_info.full_path,
                         "category": new_cat,
                     }
