@@ -1,0 +1,1 @@
+Course assignment with SQL queries for joins, grouping, and normalization.
