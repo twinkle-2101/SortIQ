@@ -54,6 +54,7 @@ st.set_page_config(
 )
 
 SANDBOX_DIR = ROOT / "sandbox"
+SANDBOX_SAMPLE_FILENAMES: set[str] = set()
 
 
 def get_image_base64(path: Path | str) -> str | None:
@@ -656,7 +657,7 @@ def create_fresh_demo_folder(base_dir: Path | None = None) -> Path:
     demo_parent.mkdir(parents=True, exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-", dir=demo_parent))
     for source_file in SANDBOX_DIR.iterdir():
-        if source_file.is_file():
+        if source_file.is_file() and source_file.name in SANDBOX_SAMPLE_FILENAMES:
             shutil.copy2(source_file, run_dir / source_file.name)
 
     demo_collisions = {
@@ -671,6 +672,18 @@ def create_fresh_demo_folder(base_dir: Path | None = None) -> Path:
         "Receipts": (
             "amazon_order_tax_invoice_10928.pdf",
             "Existing demo copy: archived order invoice for collision testing.",
+        ),
+        "Presentations": (
+            "quarterly_sales_enablement_training_deck.pptx",
+            "Existing demo copy: prior sales enablement deck for collision testing.",
+        ),
+        "Images": (
+            "family_hiking_trail_photo_2026.jpg",
+            "Existing demo copy: alternate hiking photo for collision testing.",
+        ),
+        "Other": (
+            "nginx_reverse_proxy_configuration.conf",
+            "Existing demo copy: prior proxy configuration for collision testing.",
         ),
     }
     for folder_name, (file_name, content) in demo_collisions.items():
@@ -736,8 +749,81 @@ def ensure_sandbox_files() -> int:
         "node_modules_cache_archive.zip": "PK\x03\x04" + "ZIP_ARCHIVE_MOCK_PAYLOAD" * 50,
         "terraform_staging_environment_config.tf": "terraform {\n  required_version = \">= 1.6.0\"\n}\n\nresource \"aws_s3_bucket\" \"staging_artifacts\" {\n  bucket = \"sortiq-staging-artifacts\"\n}",
         "application_server_error_log_2026-10-26.log": "2026-10-26T14:32:18Z INFO request_id=demo-1842 route=/api/files status=200 duration_ms=42\n2026-10-26T14:33:07Z WARN request_id=demo-1843 route=/api/predict status=503 retry=1",
+
+        # Additional academic files
+        "computer_science_data_structures_study_guide.pdf": "Study guide covering arrays, trees, graphs, and algorithmic complexity.",
+        "chemistry_lab_report_titration.docx": "Chemistry laboratory report describing an acid-base titration experiment.",
+        "history_research_paper_renaissance.pdf": "Research paper on trade networks and cultural change during the Renaissance.",
+        "calculus_exam_review_derivatives.pdf": "Calculus exam review covering derivatives, limits, and optimization problems.",
+        "biology_cell_structure_lecture_notes.pdf": "Lecture notes on cell organelles, membranes, and cellular transport.",
+        "database_sql_practice_assignment.sql": "Course assignment with SQL queries for joins, grouping, and normalization.",
+        "physics_quantum_mechanics_chapter_3.epub": "Textbook chapter introducing wave functions and quantum states.",
+        "economics_microeconomics_course_syllabus.docx": "Course syllabus with weekly topics, readings, grading, and office hours.",
+        "machine_learning_model_evaluation_lab.ipynb": "Notebook for a class lab comparing classification metrics and validation methods.",
+        "research_methods_literature_review.pdf": "Academic literature review summarizing research methods and published findings.",
+
+        # Additional resume and career files
+        "olivia_bennett_data_analyst_resume_2026.pdf": "Data analyst resume highlighting SQL, dashboards, and business reporting.",
+        "noah_williams_product_designer_cv.docx": "Curriculum vitae for a product designer with research and prototyping experience.",
+        "priya_shah_software_engineer_cover_letter.pdf": "Cover letter applying for a software engineering position.",
+        "ethan_brooks_cloud_architect_portfolio.pdf": "Portfolio of cloud architecture projects and technical case studies.",
+        "ava_mitchell_marketing_manager_resume.docx": "Marketing manager resume with campaign, analytics, and team leadership experience.",
+        "liam_carter_research_scientist_cv.pdf": "Research scientist CV with publications, laboratory work, and conference presentations.",
+        "sophia_chen_ux_designer_job_application.pdf": "UX designer job application with experience summary and portfolio references.",
+        "mateo_garcia_backend_developer_resume.pdf": "Backend developer resume featuring Python, APIs, and database systems.",
+        "isabella_ross_professional_biography.docx": "Professional biography and career profile for a product consultant.",
+        "jackson_lee_internship_cover_letter.docx": "Cover letter for a summer software engineering internship.",
+
+        # Additional receipt and financial files
+        "northwind_office_supplies_invoice_84021.pdf": "Office supply invoice with itemized purchases, tax, and total due.",
+        "metro_transit_monthly_pass_receipt.pdf": "Transit pass receipt with purchase date and payment confirmation.",
+        "electricity_account_statement_november_2026.pdf": "Monthly electricity statement showing usage and amount due.",
+        "hotel_riverfront_booking_invoice_5538.pdf": "Hotel booking invoice listing room charges, taxes, and reservation dates.",
+        "grocery_market_purchase_receipt_2026-10-18.pdf": "Grocery purchase receipt with subtotal, tax, and card payment.",
+        "phone_plan_autopay_bill_october.pdf": "Mobile phone service bill with plan charges and autopay status.",
+        "web_hosting_annual_renewal_invoice.pdf": "Annual web hosting renewal invoice with subscription details.",
+        "parking_garage_payment_receipt_2714.pdf": "Parking garage receipt with entry time, duration, and payment amount.",
+        "health_clinic_visit_statement_2026.pdf": "Clinic visit statement with service dates and patient balance.",
+        "airline_booking_payment_confirmation.pdf": "Airline booking payment confirmation with fare and ticket details.",
+
+        # Additional presentation files, including one intentional collision
+        "quarterly_sales_enablement_training_deck.pptx": "Sales enablement training presentation with product updates and examples.",
+        "renewable_energy_investor_pitch_slides.pptx": "Investor pitch deck for a renewable energy project.",
+        "customer_research_findings_presentation.pptx": "Presentation summarizing customer interviews and product research.",
+        "annual_engineering_strategy_keynote.pptx": "Engineering strategy keynote covering architecture and delivery goals.",
+        "community_health_program_proposal_slides.pdf": "Proposal presentation for a community health program.",
+        "mobile_app_launch_roadmap_deck.pptx": "Launch roadmap presentation with milestones, owners, and dates.",
+        "climate_science_conference_talk.pptx": "Conference talk slides on climate science and regional projections.",
+        "quarterly_finance_review_presentation.pptx": "Quarterly finance review with budget trends and forecasts.",
+        "design_system_workshop_slides.pptx": "Workshop presentation covering interface patterns and design tokens.",
+        "research_symposium_poster_presentation.pdf": "Research symposium presentation of methods and findings.",
+
+        # Additional image files, including one intentional collision
+        "family_hiking_trail_photo_2026.jpg": "Sample outdoor photograph for the image-classification demo.",
+        "warehouse_inventory_barcode_scan.png": "Sample barcode scanner screenshot.",
+        "coastal_village_travel_photograph.jpeg": "Sample coastal travel photograph.",
+        "mobile_app_wireframe_mockup.png": "Sample mobile application wireframe.",
+        "spring_garden_flower_closeup.jpg": "Sample garden flower photograph.",
+        "network_topology_diagram_export.png": "Sample network topology diagram.",
+        "product_packaging_front_view.webp": "Sample product packaging image.",
+        "team_video_call_screenshot.png": "Sample video call screenshot.",
+        "mountain_lake_camping_photo.jpeg": "Sample mountain lake photograph.",
+        "quarterly_sales_chart_illustration.png": "Sample sales chart graphic.",
+
+        # Additional miscellaneous files, including one intentional collision
+        "nginx_reverse_proxy_configuration.conf": "Demo reverse proxy configuration file.",
+        "python_linting_tool_configuration.toml": "Demo linting and formatting tool configuration.",
+        "application_startup_diagnostic.log": "Demo application startup and diagnostic log.",
+        "local_database_snapshot_archive.zip": "Demo archive placeholder for a local database snapshot.",
+        "desktop_productivity_installer.pkg": "Demo software installer placeholder.",
+        "staging_environment_variables.example": "Demo environment variable template with non-secret placeholder values.",
+        "weekly_build_status_report.txt": "Demo build status summary with successful checks.",
+        "browser_extension_package.crx": "Demo browser extension package placeholder.",
+        "data_import_mapping_configuration.json": "Demo data import mapping configuration.",
+        "system_monitoring_export.csv": "Demo system monitoring export with sample values.",
     }
 
+    SANDBOX_SAMPLE_FILENAMES.update(dummy_files)
     created_count = 0
     for filename, content in dummy_files.items():
         file_path = SANDBOX_DIR / filename
@@ -920,7 +1006,7 @@ with st.sidebar:
 
     st.divider()
     st.subheader("Safe demo")
-    st.caption("Each demo run starts with 40 sample files and an empty set of destination folders.")
+    st.caption("Each demo run starts with 100 sample files and six intentional destination-name conflicts across all categories.")
     if st.button("Start a fresh demo run", use_container_width=True):
         request_demo_folder_load()
         st.rerun()

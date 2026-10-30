@@ -15,7 +15,7 @@ from app import (
 )
 from src.file_scanner import scan_directory
 from src.ml_pipeline import predict_file_names
-from src.organizer import plan_organization
+from src.organizer import COLLISION_SKIP, plan_organization
 
 
 class AppHelperTests(unittest.TestCase):
@@ -132,7 +132,7 @@ class AppHelperTests(unittest.TestCase):
                 app.session_state["current_scan_path"],
                 app.session_state["demo_folder_path"],
             )
-            self.assertGreaterEqual(len(app.session_state["scanned_files"]), 40)
+            self.assertGreaterEqual(len(app.session_state["scanned_files"]), 100)
             self.assertTrue(
                 any(button.label == "Demo folder loaded ✓" for button in app.button)
             )
@@ -147,7 +147,7 @@ class AppHelperTests(unittest.TestCase):
             ).options
             if option.startswith("Name conflicts")
         )
-        self.assertEqual(conflict_filter, "Name conflicts (3)")
+        self.assertEqual(conflict_filter, "Name conflicts (6)")
 
         next(item for item in app.selectbox if item.label == "Show").select(
             conflict_filter
@@ -164,6 +164,9 @@ class AppHelperTests(unittest.TestCase):
                 "computer_networks_unit4_lecture_notes.pdf",
                 "alex_morgan_software_engineer_resume.pdf",
                 "amazon_order_tax_invoice_10928.pdf",
+                "quarterly_sales_enablement_training_deck.pptx",
+                "family_hiking_trail_photo_2026.jpg",
+                "nginx_reverse_proxy_configuration.conf",
             },
         )
 
@@ -179,7 +182,7 @@ class AppHelperTests(unittest.TestCase):
                 {file_info.file_name for file_info in first_files},
                 {file_info.file_name for file_info in second_files},
             )
-            self.assertEqual(len(first_files), 40)
+            self.assertEqual(len(first_files), 100)
             model = load_model()
             predictions = predict_file_names(
                 model,
@@ -204,7 +207,7 @@ class AppHelperTests(unittest.TestCase):
                     ],
                     destination_root=run_dir,
                 )
-                self.assertEqual(len(plan), 40)
+                self.assertEqual(len(plan), 100)
                 collision_items = [
                     item for item in plan if item.status == "rename"
                 ]
@@ -214,10 +217,41 @@ class AppHelperTests(unittest.TestCase):
                         "computer_networks_unit4_lecture_notes.pdf",
                         "alex_morgan_software_engineer_resume.pdf",
                         "amazon_order_tax_invoice_10928.pdf",
+                        "quarterly_sales_enablement_training_deck.pptx",
+                        "family_hiking_trail_photo_2026.jpg",
+                        "nginx_reverse_proxy_configuration.conf",
+                    },
+                )
+                self.assertEqual(
+                    {item.destination_dir.name for item in collision_items},
+                    {
+                        "Academic",
+                        "Resumes",
+                        "Receipts",
+                        "Presentations",
+                        "Images",
+                        "Other",
                     },
                 )
                 self.assertTrue(
                     all(item.status == "ready" for item in plan if item not in collision_items)
+                )
+                skip_plan = plan_organization(
+                    [
+                        {
+                            "file_name": file_info.file_name,
+                            "source_path": file_info.full_path,
+                            "category": predicted_categories[file_info.file_name],
+                        }
+                        for file_info in files
+                    ],
+                    destination_root=run_dir,
+                    collision_policy=COLLISION_SKIP,
+                )
+                skipped_items = [item for item in skip_plan if item.status == "skip"]
+                self.assertEqual(
+                    {item.file_name for item in skipped_items},
+                    {item.file_name for item in collision_items},
                 )
 
     def test_review_only_allows_renaming_when_destination_collides(self):
@@ -282,7 +316,7 @@ class AppHelperTests(unittest.TestCase):
         self.assertTrue(sandbox_path.is_dir())
         count = ensure_sandbox_files()
         scanned = scan_directory(sandbox_path)
-        self.assertGreaterEqual(len(scanned), 40)
+        self.assertGreaterEqual(len(scanned), 100)
 
 
 if __name__ == "__main__":
