@@ -50,7 +50,8 @@ The app will launch at `http://localhost:8501`.
 ### Disposable Demo Sandbox
 
 SortIQ includes a built-in sandbox for demonstration purposes:
-- Click **"Use demo folder"** or **"Start a fresh demo run"** to start with a clean copy of 40 sample files in a temporary workspace. Each run includes three intentional destination-name collisions to demonstrate the collision preview and rename controls; other demo destinations start empty.
+- Click **"Use demo folder"** or **"Start a fresh demo run"** to start with a clean copy of 100 varied sample files in a temporary workspace. Each run includes six intentional destination-name collisions, one in each category folder, to demonstrate both rename and skip policies; other demo destinations start empty.
 - Use the **"Name conflicts"** file-list filter to focus on files whose recommended destination already contains the same name.
 - A **"Rename destination file"** field appears only when a file's destination already exists. The source remains untouched until you confirm the move; leaving the name unchanged retains the automatic collision safeguard.
 - You can test the entire scan, predict, override, dry-run, and organize workflow safely without touching your real Downloads folder.
+- The demo files are for workflow demonstrations, not a labeled evaluation set; adding demo files does not change model accuracy or evaluation metrics.
