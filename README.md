@@ -1,157 +1,143 @@
-# SortIQ — Smart Downloads Folder Cleaner 🧹
+# SortIQ
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests Passing](https://img.shields.io/badge/tests-passing-brightgreen.svg)](tests/)
-[![Streamlit App](https://img.shields.io/badge/UI-Streamlit-FF4B4B.svg)](app.py)
+[![Built with Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B.svg)](https://streamlit.io/)
 
-SortIQ is a Python machine learning application that predicts file categories from filenames and extensions, recommends organized destination folders, and safely moves selected files only after explicit user confirmation.
+SortIQ is a safety-first file organizer that uses machine learning to classify files from their names, recommends category folders, and lets you review a move plan before organizing anything.
 
----
+> **Try it safely:** SortIQ includes a disposable demo folder. Start there before selecting a real directory.
 
-## 🎯 Project Overview & Objective
+## What it does
 
-User download folders quickly accumulate hundreds of unstructured files. Conventional rule-based extensions cannot distinguish between a resume PDF, a store receipt PDF, and an academic lecture PDF. SortIQ solves this using **Natural Language Processing (TF-IDF tokenization)** and **Machine Learning classification**, augmented with **Dimensionality Reduction (TruncatedSVD)** and an **Active Learning human-in-the-loop retraining mechanism**.
+1. Scans a directory and predicts a category for each file based on its filename.
+2. Flags low-confidence predictions for review and lets you correct their categories.
+3. Previews the proposed organization, including how name conflicts will be handled.
+4. Moves selected files only after you confirm the preview.
 
-### Core Categories & Destination Mapping
+| Category | Destination folder | Examples |
+| --- | --- | --- |
+| `academic` | `Academic/` | Course notes, assignments, research papers |
+| `resume` | `Resumes/` | Resumes, CVs, cover letters |
+| `receipt` | `Receipts/` | Invoices, bills, receipts, statements |
+| `presentation` | `Presentations/` | Slide decks, seminar talks, pitch decks |
+| `image` | `Images/` | Photos, screenshots, graphics |
+| `other` | `Other/` | Installers, logs, configuration files |
 
-| Category | Typical Files | Destination Folder |
-|---|---|---|
-| `academic` | Course notes, lecture slides, assignments, research papers | `Academic/` |
-| `resume` | Resumes, CVs, cover letters, portfolios | `Resumes/` |
-| `receipt` | Invoices, payment receipts, utility bills, bank statements | `Receipts/` |
-| `presentation` | Keynote decks, seminar talks, slide presentations | `Presentations/` |
-| `image` | Photos, screenshots, wallpapers, graphics, diagrams | `Images/` |
-| `other` | Installers, scripts, archives, logs, misc files | `Other/` |
+## Safety by design
 
----
+- **Scanning is read-only.** Files are not changed during scanning or prediction.
+- **Scans are non-recursive by default.** Hidden files are excluded unless you opt in.
+- **Review before moving.** The app displays a dry-run plan before it can move files.
+- **Confirmation is required.** You must confirm the current preview to execute it.
+- **No silent overwrites.** Name conflicts can be renamed (for example, `report (1).pdf`) or skipped.
+- **No file deletion.** SortIQ does not delete files; moving a selected file relocates it to its category folder.
 
-## 👥 Two-Member Division of Work
+## Quick start
 
-### Member A — Dataset, ML Pipeline & Experiments
-- Dataset generation and balance validation (1,200 synthetic rows across 6 categories in `data/file_dataset.csv`).
-- Data preprocessing with token normalization and TF-IDF feature extraction.
-- Stratified holdout evaluation keeping filename families together to prevent data leakage.
-- Fair model comparison: **Multinomial Naive Bayes** vs. **Logistic Regression** vs. **TruncatedSVD + Logistic Regression**.
-- Required TruncatedSVD comparison (evaluating component dimensionality, runtime, and macro-F1).
-- Complete pipeline persistence (`models/best_model.joblib`), metrics serialization (`reports/model_metrics.json`), and confusion matrix generation (`reports/confusion_matrix.png`).
-- Continuous active-learning retraining engine (`src/feedback.py`) triggering automatic retrain after 5 confirmed corrections.
+### Requirements
 
-### Member B — Frontend, Safe File Operations & Testing
-- Modern, interactive Streamlit web application (`app.py`).
-- Read-only directory scanner with path and permission validation (`src/file_scanner.py`).
-- Category-to-folder mapping and path resolution (`src/category_mapping.py`).
-- Safe organizer engine with collision resolution (auto-rename / skip) and dry-run preview (`src/organizer.py`).
-- Ambiguity detection: highlighting predictions below the user-defined confidence threshold.
-- Interactive category override interface with one-click ML feedback submission.
-- End-to-end integration tests and safety verification (`tests/test_file_scanner.py`, `tests/test_organizer.py`, `tests/test_integration.py`, `tests/test_app.py`).
-- Built-in disposable demo folder generator for safe sandbox testing.
+- Python 3.11 or newer
+- pip
 
----
+### Install
 
-## 📊 ML Model Comparison & Results
+Clone the repository and create an environment:
 
-Evaluated on the exact same stratified held-out test split (240 unseen filename families):
-
-| Pipeline Candidate | Accuracy | Macro F1-Score | Weighted F1-Score | SVD Components | Fit+Eval Runtime |
-|---|---|---|---|---|---|
-| **TF-IDF + Multinomial Naive Bayes** | 74.2% | 0.716 | 0.716 | N/A | 0.023s |
-| **TF-IDF + Logistic Regression** | 83.3% | 0.829 | 0.829 | N/A | 0.065s |
-| **TF-IDF + TruncatedSVD + Logistic Regression (Selected)** | **84.6%** | **0.841** | **0.841** | **100** | **0.473s** |
-
-> **Key Finding on SVD:** On this synthetic holdout, adding 100 TruncatedSVD components improved accuracy by about 1.3 percentage points and macro-F1 from 0.829 to 0.841 compared with TF-IDF + Logistic Regression. Runtime is environment-dependent.
-
-The checked-in model was trained with scikit-learn 1.9.0. The exact version is
-pinned in `requirements.txt` because scikit-learn model artifacts are not
-guaranteed to be compatible across versions.
-
----
-
-## 🛡️ Mandatory Safety Principles
-
-1. **Read-Only Scanning**: Scanning and ML prediction never alter or move files.
-2. **Preview / Dry-Run by Default**: Detailed movement plan is shown before any disk write.
-3. **Explicit Confirmation**: File movements require an explicit confirmation checkbox.
-4. **Zero Silent Overwrites**: Collisions are either auto-renamed (`file (1).ext`) or safely skipped.
-5. **No File Deletion**: SortIQ never deletes any user files.
-6. **Non-Recursive by Default**: Protects against accidentally traversing entire system volumes.
-
----
-
-## 🚀 Quick Start Guide
-
-### 1. Installation
-
-Clone the repository and install dependencies:
-
-```bash
+```shell
 git clone https://github.com/twinkle-2101/SortIQ.git
 cd SortIQ
-pip install -r requirements.txt
+python -m venv .venv
 ```
 
-### 2. Run Model Experiments & Retraining
+Activate the environment and install dependencies:
 
-To train the models and generate metrics locally:
+**Windows PowerShell**
 
-```bash
-python -m src.run_experiments
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
-### 3. Launch the Streamlit Web Application
+**macOS / Linux**
 
-```bash
+```shell
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+### Launch the app
+
+From the repository root, run:
+
+```shell
 streamlit run app.py
 ```
 
-The app opens automatically at `http://localhost:8501`.
+Open the local URL printed by Streamlit (typically <http://localhost:8501>).
 
-### 4. Run the Full Test Suite
+### Try the disposable demo
 
-Run all unit and integration tests:
+Use **Start a fresh demo run** in the app to create a clean sample workspace. It contains example files and intentional name conflicts, so you can try scanning, reviewing predictions, previewing the plan, and organizing files without starting with your own Downloads folder.
 
-```bash
+When you are ready to organize your own files, enter the directory to scan in the app. Review the categories and destination plan, choose how to handle any conflicts, and confirm the preview before executing moves.
+
+## Model and evaluation
+
+SortIQ uses a TF-IDF text pipeline to classify filenames. The checked-in model is a TF-IDF + TruncatedSVD + Logistic Regression pipeline. Users can review low-confidence predictions and submit corrections; after each batch of five new confirmed corrections, the app retrains the model using the starter dataset and reviewed feedback.
+
+The committed evaluation compares three pipelines on the same stratified 20% holdout, keeping variants of a filename family together:
+
+| Pipeline | Accuracy | Macro F1 |
+| --- | ---: | ---: |
+| TF-IDF + Multinomial Naive Bayes | 74.2% | 0.716 |
+| TF-IDF + Logistic Regression | 83.3% | 0.829 |
+| TF-IDF + TruncatedSVD + Logistic Regression | **84.6%** | **0.841** |
+
+**These are development results, not estimates of real-world performance.** The 1,200-row dataset is synthetic, and the holdout was used to select the best pipeline. See [data/README.md](data/README.md) and [ml/README.md](ml/README.md) for dataset provenance and methodology.
+
+The model artifact was trained with scikit-learn 1.9.0. That version is pinned in `requirements.txt` because scikit-learn model artifacts are not guaranteed to work across versions.
+
+### Run the model experiments
+
+From the repository root:
+
+```shell
+python -m src.run_experiments
+```
+
+This retrains and evaluates the candidate pipelines, then writes the selected model to `models/best_model.joblib` and evaluation artifacts to `reports/`.
+
+## Tests
+
+Run the test suite from the repository root:
+
+```shell
 python -m pytest
 ```
 
----
+## Local feedback data
 
-## 📁 Repository Structure
+Confirmed corrections are stored in `data/user_feedback.csv`; correction events are recorded in `data/user_feedback_events.jsonl`. These files are local and git-ignored. They may contain filenames from your files, so do not share or commit them.
+
+## Repository layout
 
 ```text
 SortIQ/
-├── app.py                         # Streamlit Web Application (Member B)
-├── app/
-│   └── README.md                  # Frontend Architecture & Documentation
+├── app.py                       # Streamlit interface and demo workflow
+├── app/README.md                # App behavior and safety details
 ├── data/
-│   ├── file_dataset.csv           # 1,200-row labeled starter dataset (Member A)
-│   ├── generate_dataset.py        # Dataset generator script
-│   └── README.md                  # Dataset schema documentation
-├── docs/
-│   └── plan.md                    # Project requirements and phase plan
-├── ml/
-│   └── README.md                  # ML methodology and experiments documentation
+│   ├── file_dataset.csv         # Synthetic starter dataset
+│   ├── generate_dataset.py      # Reproducible dataset generator
+│   └── README.md                # Dataset schema and limitations
+├── ml/README.md                 # Experiment methodology and inference API
 ├── models/
-│   └── best_model.joblib          # Persisted full scikit-learn pipeline
+│   └── best_model.joblib        # Trained classification pipeline
 ├── notebooks/
-│   └── model_experiments.ipynb    # Exploration & Colab experiment notebook
+│   └── model_experiments.ipynb  # Exploratory experiments
 ├── reports/
-│   ├── confusion_matrix.png       # Confusion matrix visualization
-│   └── model_metrics.json         # Serialized holdout evaluation metrics
-├── requirements.txt               # Project dependencies
-├── src/
-│   ├── __init__.py
-│   ├── category_mapping.py        # Category to directory mapping (Member B)
-│   ├── feedback.py                # Active learning feedback & retrain loop (Member A)
-│   ├── file_scanner.py            # Read-only folder scanner & validator (Member B)
-│   ├── ml_pipeline.py             # Preprocessing, training, and inference (Member A)
-│   ├── organizer.py               # Dry-run planner & safe move engine (Member B)
-│   └── run_experiments.py         # Baseline comparison execution script
-└── tests/
-    ├── test_app.py                # Streamlit helper & fallback tests (Member B)
-    ├── test_category_mapping.py   # Destination resolution tests (Member B)
-    ├── test_dataset.py            # Dataset contract tests (Member A)
-    ├── test_file_scanner.py       # F1-F2 Scanner & permission tests (Member B)
-    ├── test_integration.py        # I1-I2 End-to-end workflow tests (Member B)
-    ├── test_ml_pipeline.py        # M1-M4 Model & feedback tests (Member A)
-    └── test_organizer.py          # F3-F8 Dry-run, collision & move tests (Member B)
+│   ├── confusion_matrix.png     # Evaluation visualization
+│   └── model_metrics.json       # Evaluation metrics and metadata
+├── requirements.txt             # Python dependencies
+├── src/                         # Scanner, classifier, feedback, organizer
+└── tests/                       # Unit and integration tests
 ```
