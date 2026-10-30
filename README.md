@@ -77,7 +77,7 @@ Open the local URL printed by Streamlit (typically <http://localhost:8501>).
 
 ### Try the disposable demo
 
-Use **Start a fresh demo run** in the app to create a clean sample workspace with 100 varied files and six intentional destination-name conflicts across all categories. Try both rename and skip conflict policies, and review predictions and the move plan without starting with your own Downloads folder. This demo corpus is for workflow demonstrations; it is not a labeled evaluation set and does not change the reported model accuracy.
+Use **Start a fresh demo run** in the app to create a clean sample workspace with 100 varied files and six intentional destination-name conflicts across all categories. At the default 75% review threshold, the checked-in model currently flags 15 demo files for review. Try both rename and skip conflict policies without starting with your own Downloads folder. This demo corpus is for workflow demonstrations; it is not a labeled evaluation set and does not change the reported model accuracy.
 
 When you are ready to organize your own files, enter the directory to scan in the app. Review the categories and destination plan, choose how to handle any conflicts, and confirm the preview before executing moves.
 

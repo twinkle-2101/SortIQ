@@ -1,1 +1,0 @@
-Demo build status summary with successful checks.

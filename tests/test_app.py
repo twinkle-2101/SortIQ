@@ -36,6 +36,9 @@ class AppHelperTests(unittest.TestCase):
             for file_name, prediction in predictions.items()
             if prediction.get("confidence", 0.5) < threshold
         }
+        self.assertEqual(len(predictions), 100)
+        self.assertGreaterEqual(len(ambiguous_files), 10)
+        self.assertLessEqual(len(ambiguous_files), 18)
         review_controls = {
             selectbox.label.removeprefix("Review category for ")
             for selectbox in app.selectbox
@@ -161,12 +164,12 @@ class AppHelperTests(unittest.TestCase):
         self.assertEqual(
             visible_name_inputs,
             {
-                "computer_networks_unit4_lecture_notes.pdf",
-                "alex_morgan_software_engineer_resume.pdf",
-                "amazon_order_tax_invoice_10928.pdf",
-                "quarterly_sales_enablement_training_deck.pptx",
-                "family_hiking_trail_photo_2026.jpg",
-                "nginx_reverse_proxy_configuration.conf",
+                "computer_networks_unit4_lecture_notes_dbms_unit_3_lecture_notes.pdf",
+                "alex_morgan_software_engineer_resume_software_engineer_resume.pdf",
+                "amazon_order_tax_invoice_10928_grocery_market_receipt.pdf",
+                "quarterly_sales_enablement_training_deck_database_normalization_slides.pptx",
+                "family_hiking_trail_photo_2026_mountain_sunrise_landscape_photo.jpg",
+                "birthday_party_guest_checklist_final.txt",
             },
         )
 
@@ -188,6 +191,27 @@ class AppHelperTests(unittest.TestCase):
                 model,
                 [file_info.file_name for file_info in first_files],
             )
+            category_markers = {
+                "_dbms_unit_3_lecture_notes.": "academic",
+                "_software_engineer_resume.": "resume",
+                "_grocery_market_receipt.": "receipt",
+                "_database_normalization_slides.": "presentation",
+                "_mountain_sunrise_landscape_photo.": "image",
+            }
+            for prediction in predictions:
+                expected_category = next(
+                    (
+                        category
+                        for marker, category in category_markers.items()
+                        if marker in prediction["file_name"]
+                    ),
+                    "other",
+                )
+                self.assertEqual(
+                    prediction["predicted_category"],
+                    expected_category,
+                    prediction["file_name"],
+                )
             predicted_categories = {
                 prediction["file_name"]: prediction["predicted_category"]
                 for prediction in predictions
@@ -214,12 +238,12 @@ class AppHelperTests(unittest.TestCase):
                 self.assertEqual(
                     {item.file_name for item in collision_items},
                     {
-                        "computer_networks_unit4_lecture_notes.pdf",
-                        "alex_morgan_software_engineer_resume.pdf",
-                        "amazon_order_tax_invoice_10928.pdf",
-                        "quarterly_sales_enablement_training_deck.pptx",
-                        "family_hiking_trail_photo_2026.jpg",
-                        "nginx_reverse_proxy_configuration.conf",
+                        "computer_networks_unit4_lecture_notes_dbms_unit_3_lecture_notes.pdf",
+                        "alex_morgan_software_engineer_resume_software_engineer_resume.pdf",
+                        "amazon_order_tax_invoice_10928_grocery_market_receipt.pdf",
+                        "quarterly_sales_enablement_training_deck_database_normalization_slides.pptx",
+                        "family_hiking_trail_photo_2026_mountain_sunrise_landscape_photo.jpg",
+                        "birthday_party_guest_checklist_final.txt",
                     },
                 )
                 self.assertEqual(

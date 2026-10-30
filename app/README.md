@@ -14,7 +14,7 @@ The SortIQ frontend is an interactive, safety-first Streamlit web application de
 2. **ML Classification & Ambiguity Detection**:
    - Filenames are tokenized and processed through the trained TF-IDF + TruncatedSVD + Logistic Regression pipeline (`models/best_model.joblib`).
    - Each prediction includes a probability confidence score.
-   - Predictions below the configurable threshold (default `0.75`) are highlighted as **Ambiguous / Needs Review**.
+   - Predictions below the configurable threshold (default `0.75`) are highlighted as **Ambiguous / Needs Review**. The 100-file demo corpus uses filename patterns recognized by the checked-in model and currently flags 15 files for review.
    - Category correction controls are shown only for ambiguous predictions; confident predictions keep their model category without requiring user input.
 
 3. **Active Learning Retraining Loop**:
